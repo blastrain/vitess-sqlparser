@@ -11,7 +11,7 @@ this library inspired by https://github.com/xwb1989/sqlparser
 package main
 
 import (
-  "fmt"
+ 	"fmt"
 	"github.com/knocknote/vitess-sqlparser/sqlparser"
 )
 
