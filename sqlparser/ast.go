@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/knocknote/vitess-sqlparser/sqltypes"
+	tidbparser "github.com/knocknote/vitess-sqlparser/tidbparser/parser"
 )
 
 // Instructions for creating new types: If a type
@@ -45,7 +46,15 @@ func Parse(sql string) (Statement, error) {
 	if yyParse(tokenizer) != 0 {
 		return nil, errors.New(tokenizer.LastError)
 	}
-	return tokenizer.ParseTree, nil
+	ast := tokenizer.ParseTree
+	if ddl, ok := ast.(*DDL); ok {
+		stmts, err := tidbparser.New().Parse(sql, "", "")
+		if err != nil {
+			return nil, err
+		}
+		return convertTiDBStmtToVitessStmt(stmts, ddl), nil
+	}
+	return ast, nil
 }
 
 // SQLNode defines the interface for all nodes
@@ -494,6 +503,11 @@ type DDL struct {
 	IfExists bool
 }
 
+type CreateTable struct {
+	*DDL
+	Columns []*ColumnDef
+}
+
 // DDL strings.
 const (
 	CreateStr = "create"
@@ -713,6 +727,13 @@ func (node Nextval) Format(buf *TrackedBuffer) {
 // WalkSubtree walks the nodes of the subtree.
 func (node Nextval) WalkSubtree(visit Visit) error {
 	return Walk(visit, node.Expr)
+}
+
+type ColumnDef struct {
+	Name string
+	Type string
+	// Elems is the element list for enum and set type.
+	Elems []string
 }
 
 // Columns represents an insert column list.
