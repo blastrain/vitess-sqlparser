@@ -2,7 +2,6 @@ package sqlparser
 
 import (
 	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/types"
 )
 
 func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
@@ -10,7 +9,7 @@ func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
 	for _, col := range stmt.Cols {
 		columns = append(columns, &ColumnDef{
 			Name:  col.Name.Name.String(),
-			Type:  string(types.TypeStr(col.Tp.Tp)),
+			Type:  col.Tp.String(),
 			Elems: col.Tp.Elems,
 		})
 	}
