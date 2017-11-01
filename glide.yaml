@@ -1,4 +1,0 @@
-package: vitess-sqlparser
-import:
-- package: github.com/golang/protobuf/proto
-- package: github.com/golang/glog
