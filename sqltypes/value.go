@@ -19,16 +19,11 @@ package sqltypes
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/knocknote/vitess-sqlparser/bytes2"
 	"github.com/knocknote/vitess-sqlparser/hack"
-
-	querypb "github.com/knocknote/vitess-sqlparser/query"
 )
 
 var (
@@ -51,7 +46,7 @@ type BinWriter interface {
 // an integral type, the bytes are always stored as a cannonical
 // representation that matches how MySQL returns such values.
 type Value struct {
-	typ querypb.Type
+	typ Type
 	val []byte
 }
 
@@ -61,7 +56,7 @@ type Value struct {
 // and type conform to the rules.  Every place this function is
 // called, a comment is needed that explains why it's justified.
 // Functions within this package are exempt.
-func MakeTrusted(typ querypb.Type, val []byte) Value {
+func MakeTrusted(typ Type, val []byte) Value {
 	if typ == Null {
 		return NULL
 	}
@@ -73,129 +68,8 @@ func MakeString(val []byte) Value {
 	return MakeTrusted(VarBinary, val)
 }
 
-// BuildValue builds a value from any go type. sqltype.Value is
-// also allowed.
-func BuildValue(goval interface{}) (v Value, err error) {
-	// Look for the most common types first.
-	switch goval := goval.(type) {
-	case nil:
-		// no op
-	case []byte:
-		v = MakeTrusted(VarBinary, goval)
-	case int64:
-		v = MakeTrusted(Int64, strconv.AppendInt(nil, int64(goval), 10))
-	case uint64:
-		v = MakeTrusted(Uint64, strconv.AppendUint(nil, uint64(goval), 10))
-	case float64:
-		v = MakeTrusted(Float64, strconv.AppendFloat(nil, goval, 'f', -1, 64))
-	case int:
-		v = MakeTrusted(Int64, strconv.AppendInt(nil, int64(goval), 10))
-	case int8:
-		v = MakeTrusted(Int8, strconv.AppendInt(nil, int64(goval), 10))
-	case int16:
-		v = MakeTrusted(Int16, strconv.AppendInt(nil, int64(goval), 10))
-	case int32:
-		v = MakeTrusted(Int32, strconv.AppendInt(nil, int64(goval), 10))
-	case uint:
-		v = MakeTrusted(Uint64, strconv.AppendUint(nil, uint64(goval), 10))
-	case uint8:
-		v = MakeTrusted(Uint8, strconv.AppendUint(nil, uint64(goval), 10))
-	case uint16:
-		v = MakeTrusted(Uint16, strconv.AppendUint(nil, uint64(goval), 10))
-	case uint32:
-		v = MakeTrusted(Uint32, strconv.AppendUint(nil, uint64(goval), 10))
-	case float32:
-		v = MakeTrusted(Float32, strconv.AppendFloat(nil, float64(goval), 'f', -1, 64))
-	case string:
-		v = MakeTrusted(VarBinary, []byte(goval))
-	case time.Time:
-		v = MakeTrusted(Datetime, []byte(goval.Format("2006-01-02 15:04:05")))
-	case Value:
-		v = goval
-	case *querypb.BindVariable:
-		return ValueFromBytes(goval.Type, goval.Value)
-	default:
-		return v, fmt.Errorf("unexpected type %T: %v", goval, goval)
-	}
-	return v, nil
-}
-
-// BuildConverted is like BuildValue except that it tries to
-// convert a string or []byte to an integral if the target type
-// is an integral. We don't perform other implicit conversions
-// because they're unsafe.
-func BuildConverted(typ querypb.Type, goval interface{}) (v Value, err error) {
-	if IsIntegral(typ) {
-		switch goval := goval.(type) {
-		case []byte:
-			return ValueFromBytes(typ, goval)
-		case string:
-			return ValueFromBytes(typ, []byte(goval))
-		case Value:
-			if goval.IsQuoted() {
-				return ValueFromBytes(typ, goval.Raw())
-			}
-		case *querypb.BindVariable:
-			if IsQuoted(goval.Type) {
-				return ValueFromBytes(typ, goval.Value)
-			}
-		}
-	}
-	// TODO(sougou): We should not call BuildValue here, because it
-	// may build a Value of a different type than requested. Things
-	// work for now because the value is eventually just passed through.
-	return BuildValue(goval)
-}
-
-// ValueFromBytes builds a Value using typ and val. It ensures that val
-// matches the requested type. If type is an integral it's converted to
-// a cannonical form. Otherwise, the original representation is preserved.
-func ValueFromBytes(typ querypb.Type, val []byte) (v Value, err error) {
-	if !IsTypeValid(typ) {
-		return NULL, fmt.Errorf("type: %v is invalid", typ)
-	}
-	switch {
-	case IsSigned(typ):
-		signed, err := strconv.ParseInt(string(val), 0, 64)
-		if err != nil {
-			return NULL, err
-		}
-		v = MakeTrusted(typ, strconv.AppendInt(nil, signed, 10))
-	case IsUnsigned(typ):
-		unsigned, err := strconv.ParseUint(string(val), 0, 64)
-		if err != nil {
-			return NULL, err
-		}
-		v = MakeTrusted(typ, strconv.AppendUint(nil, unsigned, 10))
-	case IsFloat(typ) || typ == Decimal:
-		_, err := strconv.ParseFloat(string(val), 64)
-		if err != nil {
-			return NULL, err
-		}
-		// After verification, we preserve the original representation.
-		fallthrough
-	default:
-		v = MakeTrusted(typ, val)
-	}
-	return v, nil
-}
-
-// BuildIntegral builds an integral type from a string representaion.
-// The type will be Int64 or Uint64. Int64 will be preferred where possible.
-func BuildIntegral(val string) (n Value, err error) {
-	signed, err := strconv.ParseInt(val, 0, 64)
-	if err == nil {
-		return MakeTrusted(Int64, strconv.AppendInt(nil, signed, 10)), nil
-	}
-	unsigned, err := strconv.ParseUint(val, 0, 64)
-	if err != nil {
-		return Value{}, err
-	}
-	return MakeTrusted(Uint64, strconv.AppendUint(nil, unsigned, 10)), nil
-}
-
 // Type returns the type of Value.
-func (v Value) Type() querypb.Type {
+func (v Value) Type() Type {
 	return v.typ
 }
 
@@ -251,14 +125,6 @@ func (v Value) ToNative() interface{} {
 	return out
 }
 
-// ToProtoValue converts Value to a querypb.Value.
-func (v Value) ToProtoValue() *querypb.Value {
-	return &querypb.Value{
-		Type:  v.typ,
-		Value: v.val,
-	}
-}
-
 // ParseInt64 will parse a Value into an int64. It does
 // not check the type.
 // TODO(sougou): deprecate this function in favor of a
@@ -309,89 +175,6 @@ func (v Value) EncodeASCII(b BinWriter) {
 	default:
 		b.Write(v.val)
 	}
-}
-
-// IsNull returns true if Value is null.
-func (v Value) IsNull() bool {
-	return v.typ == Null
-}
-
-// IsIntegral returns true if Value is an integral.
-func (v Value) IsIntegral() bool {
-	return IsIntegral(v.typ)
-}
-
-// IsSigned returns true if Value is a signed integral.
-func (v Value) IsSigned() bool {
-	return IsSigned(v.typ)
-}
-
-// IsUnsigned returns true if Value is an unsigned integral.
-func (v Value) IsUnsigned() bool {
-	return IsUnsigned(v.typ)
-}
-
-// IsFloat returns true if Value is a float.
-func (v Value) IsFloat() bool {
-	return IsFloat(v.typ)
-}
-
-// IsQuoted returns true if Value must be SQL-quoted.
-func (v Value) IsQuoted() bool {
-	return IsQuoted(v.typ)
-}
-
-// IsText returns true if Value is a collatable text.
-func (v Value) IsText() bool {
-	return IsText(v.typ)
-}
-
-// IsBinary returns true if Value is binary.
-func (v Value) IsBinary() bool {
-	return IsBinary(v.typ)
-}
-
-// MarshalJSON should only be used for testing.
-// It's not a complete implementation.
-func (v Value) MarshalJSON() ([]byte, error) {
-	switch {
-	case v.IsQuoted():
-		return json.Marshal(v.String())
-	case v.typ == Null:
-		return nullstr, nil
-	}
-	return v.val, nil
-}
-
-// UnmarshalJSON should only be used for testing.
-// It's not a complete implementation.
-func (v *Value) UnmarshalJSON(b []byte) error {
-	if len(b) == 0 {
-		return fmt.Errorf("error unmarshaling empty bytes")
-	}
-	var val interface{}
-	var err error
-	switch b[0] {
-	case '-':
-		var ival int64
-		err = json.Unmarshal(b, &ival)
-		val = ival
-	case '"':
-		var bval []byte
-		err = json.Unmarshal(b, &bval)
-		val = bval
-	case 'n': // null
-		err = json.Unmarshal(b, &val)
-	default:
-		var uval uint64
-		err = json.Unmarshal(b, &uval)
-		val = uval
-	}
-	if err != nil {
-		return err
-	}
-	*v, err = BuildValue(val)
-	return err
 }
 
 func encodeBytesSQL(val []byte, b BinWriter) {
