@@ -23,6 +23,12 @@ Therefore we use vitess sql parser directly and also use TiDB parser for DDL par
 |zhenjl/sqlparser | ○|△ |
 |knocknote/vitess-sqlparser|○|○|
 
+# Installation
+
+```
+go get -u github.com/knocknote/vitess-sqlparser
+```
+
 # Examples
 
 ```go
