@@ -47,12 +47,19 @@ func Parse(sql string) (Statement, error) {
 		return nil, errors.New(tokenizer.LastError)
 	}
 	ast := tokenizer.ParseTree
-	if ddl, ok := ast.(*DDL); ok {
+	switch stmt := ast.(type) {
+	case *DDL:
 		stmts, err := tidbparser.New().Parse(sql, "", "")
 		if err != nil {
 			return nil, err
 		}
-		return convertTiDBStmtToVitessStmt(stmts, ddl), nil
+		return convertTiDBStmtToVitessDDL(stmts, stmt), nil
+	case *OtherAdmin:
+		stmts, err := tidbparser.New().Parse(sql, "", "")
+		if err != nil {
+			return nil, err
+		}
+		return convertTiDBStmtToVitessOtherAdmin(stmts, stmt), nil
 	}
 	return ast, nil
 }
@@ -122,17 +129,18 @@ type Statement interface {
 	SQLNode
 }
 
-func (*Union) iStatement()      {}
-func (*Select) iStatement()     {}
-func (*Insert) iStatement()     {}
-func (*Update) iStatement()     {}
-func (*Delete) iStatement()     {}
-func (*Set) iStatement()        {}
-func (*DDL) iStatement()        {}
-func (*Show) iStatement()       {}
-func (*Use) iStatement()        {}
-func (*OtherRead) iStatement()  {}
-func (*OtherAdmin) iStatement() {}
+func (*Union) iStatement()         {}
+func (*Select) iStatement()        {}
+func (*Insert) iStatement()        {}
+func (*Update) iStatement()        {}
+func (*Delete) iStatement()        {}
+func (*Set) iStatement()           {}
+func (*DDL) iStatement()           {}
+func (*Show) iStatement()          {}
+func (*Use) iStatement()           {}
+func (*OtherRead) iStatement()     {}
+func (*OtherAdmin) iStatement()    {}
+func (*TruncateTable) iStatement() {}
 
 // ParenSelect can actually not be a top level statement,
 // but we have to allow it because it's a requirement
@@ -606,6 +614,26 @@ func (node *OtherRead) WalkSubtree(visit Visit) error {
 // It should be used only as an indicator. It does not contain
 // the full AST for the statement.
 type OtherAdmin struct{}
+
+type TruncateTable struct {
+	Table TableName
+}
+
+// Format formats the node.
+func (node *TruncateTable) Format(buf *TrackedBuffer) {
+	buf.Myprintf("truncate %v", node.Table)
+}
+
+// WalkSubtree walks the nodes of the subtree.
+func (node *TruncateTable) WalkSubtree(visit Visit) error {
+	if node == nil {
+		return nil
+	}
+	return Walk(
+		visit,
+		node.Table,
+	)
+}
 
 // Format formats the node.
 func (node *OtherAdmin) Format(buf *TrackedBuffer) {
