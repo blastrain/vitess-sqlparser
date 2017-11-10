@@ -19,7 +19,23 @@ func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
 	}
 }
 
-func convertTiDBStmtToVitessStmt(stmts []ast.StmtNode, ddl *DDL) Statement {
+func convertFromTruncateTableStmt(stmt *ast.TruncateTableStmt) Statement {
+	return &TruncateTable{Table: TableName{Name: TableIdent{v: stmt.Table.Name.String()}}}
+}
+
+func convertTiDBStmtToVitessOtherAdmin(stmts []ast.StmtNode, admin *OtherAdmin) Statement {
+	for _, stmt := range stmts {
+		switch adminStmt := stmt.(type) {
+		case *ast.TruncateTableStmt:
+			return convertFromTruncateTableStmt(adminStmt)
+		default:
+			return admin
+		}
+	}
+	return nil
+}
+
+func convertTiDBStmtToVitessDDL(stmts []ast.StmtNode, ddl *DDL) Statement {
 	for _, stmt := range stmts {
 		switch ddlStmt := stmt.(type) {
 		case *ast.CreateTableStmt:
