@@ -25,6 +25,7 @@ func convertTiDBStmtToVitessStmt(stmts []ast.StmtNode, ddl *DDL) Statement {
 		case *ast.CreateTableStmt:
 			return convertFromCreateTableStmt(ddlStmt, ddl)
 		default:
+			return ddl
 		}
 	}
 	return nil
