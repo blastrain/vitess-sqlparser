@@ -513,7 +513,8 @@ type DDL struct {
 
 type CreateTable struct {
 	*DDL
-	Columns []*ColumnDef
+	Columns     []*ColumnDef
+	Constraints []*Constraint
 }
 
 // DDL strings.
@@ -755,6 +756,28 @@ func (node Nextval) Format(buf *TrackedBuffer) {
 // WalkSubtree walks the nodes of the subtree.
 func (node Nextval) WalkSubtree(visit Visit) error {
 	return Walk(visit, node.Expr)
+}
+
+type ConstraintType int
+
+const (
+	ConstraintNoConstraint ConstraintType = iota
+	ConstraintPrimaryKey
+	ConstraintKey
+	ConstraintIndex
+	ConstraintUniq
+	ConstraintUniqKey
+	ConstraintUniqIndex
+	ConstraintForeignKey
+	ConstraintFulltext
+)
+
+// Constraint is constraint for table definition.
+type Constraint struct {
+	Type ConstraintType
+	Name string
+	// Used for PRIMARY KEY, UNIQUE, ......
+	Keys []ColIdent
 }
 
 type ColumnDef struct {

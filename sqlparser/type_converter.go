@@ -5,7 +5,7 @@ import (
 )
 
 func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
-	var columns []*ColumnDef
+	columns := []*ColumnDef{}
 	for _, col := range stmt.Cols {
 		columns = append(columns, &ColumnDef{
 			Name:  col.Name.Name.String(),
@@ -13,9 +13,22 @@ func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
 			Elems: col.Tp.Elems,
 		})
 	}
+	constraints := []*Constraint{}
+	for _, constraint := range stmt.Constraints {
+		keys := []ColIdent{}
+		for _, key := range constraint.Keys {
+			keys = append(keys, NewColIdent(key.Column.Name.String()))
+		}
+		constraints = append(constraints, &Constraint{
+			Type: ConstraintType(constraint.Tp),
+			Name: constraint.Name,
+			Keys: keys,
+		})
+	}
 	return &CreateTable{
-		DDL:     ddl,
-		Columns: columns,
+		DDL:         ddl,
+		Columns:     columns,
+		Constraints: constraints,
 	}
 }
 
