@@ -1,0 +1,31 @@
+hash: 49cbc0756f755ea883bd642eb291b8e365db357d7dc464f4a213863b4961e23c
+updated: 2017-12-17T14:39:32.784831052+09:00
+imports:
+- name: github.com/juju/errors
+  version: c7d06af17c68cd34c835053720b21f6549d9b0ee
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+- name: github.com/mattn/go-isatty
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+- name: github.com/ngaut/log
+  version: d2af3a61f64d093457fb23b25d20f4ce3cd551ce
+- name: golang.org/x/sys
+  version: 571f7bbbe08da2a8955aed9d4db316e78630e9a3
+  subpackages:
+  - unix
+- name: golang.org/x/text
+  version: d5a9226ed7dd70cade6ccae9d37517fe14dd9fee
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/utf8internal
+  - runes
+  - transform
+testImports: []

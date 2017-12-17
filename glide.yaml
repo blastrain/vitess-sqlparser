@@ -1,0 +1,13 @@
+package: github.com/knocknote/vitess-sqlparser
+import:
+- package: github.com/juju/errors
+- package: github.com/ngaut/log
+- package: golang.org/x/text
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
