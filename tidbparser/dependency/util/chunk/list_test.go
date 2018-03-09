@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/pingcap/check"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/types"
-	"github.com/pingcap/tidb/types/json"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
 )
 
 func (s *testChunkSuite) TestList(c *check.C) {

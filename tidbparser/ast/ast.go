@@ -21,7 +21,7 @@ import (
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/chunk"
-	"golang.org/x/net/context"
+	"context"
 )
 
 // Node is the basic element of the AST.

@@ -23,7 +23,6 @@ import (
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/parser/opcode"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 )
 
@@ -320,12 +319,6 @@ func (n *CaseExpr) Accept(v Visitor) (Node, bool) {
 // This interface is implemented in executor and used in plan/evaluator.
 // It will execute the subselect and get the result.
 type SubqueryExec interface {
-	// EvalRows executes the subquery and returns the multi rows with rowCount.
-	// rowCount < 0 means no limit.
-	// If the ColumnCount is 1, we will return a column result like {1, 2, 3},
-	// otherwise, we will return a table result like {{1, 1}, {2, 2}}.
-	EvalRows(ctx sessionctx.Context, rowCount int) ([]types.Datum, error)
-
 	// ColumnCount returns column count for the sub query.
 	ColumnCount() (int, error)
 }

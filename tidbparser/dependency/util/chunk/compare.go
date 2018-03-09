@@ -16,10 +16,10 @@ package chunk
 import (
 	"sort"
 
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/terror"
-	"github.com/pingcap/tidb/types"
-	"github.com/pingcap/tidb/types/json"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
 )
 
 // CompareFunc is a function to compare the two values in Row, the two columns must have the same type.

@@ -17,10 +17,10 @@ import (
 	"encoding/binary"
 	"unsafe"
 
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/types"
-	"github.com/pingcap/tidb/types/json"
-	"github.com/pingcap/tidb/util/hack"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 var _ types.Row = Row{}

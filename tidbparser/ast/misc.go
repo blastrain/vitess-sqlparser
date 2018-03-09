@@ -20,7 +20,6 @@ import (
 
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/auth"
 )
 
@@ -747,17 +746,6 @@ func (n *GrantStmt) Accept(v Visitor) (Node, bool) {
 type Ident struct {
 	Schema model.CIStr
 	Name   model.CIStr
-}
-
-// Full returns an Ident which set schema to the current schema if it is empty.
-func (i Ident) Full(ctx sessionctx.Context) (full Ident) {
-	full.Name = i.Name
-	if i.Schema.O != "" {
-		full.Schema = i.Schema
-	} else {
-		full.Schema = model.NewCIStr(ctx.GetSessionVars().CurrentDB)
-	}
-	return
 }
 
 // String implements fmt.Stringer interface.

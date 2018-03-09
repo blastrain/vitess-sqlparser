@@ -15,8 +15,8 @@ package chunk
 
 import (
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/types"
-	"github.com/pingcap/tidb/util/memory"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/memory"
 )
 
 // List holds a slice of chunks, use to append rows with max chunk size properly handled.

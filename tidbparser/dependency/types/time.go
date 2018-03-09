@@ -27,7 +27,6 @@ import (
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
-	log "github.com/sirupsen/logrus"
 )
 
 // Portable analogs of some common call errors.
@@ -249,7 +248,7 @@ func (t Time) ToNumber() *MyDecimal {
 
 	s, err := t.DateFormat(tfStr)
 	if err != nil {
-		log.Error("Fatal: never happen because we've control the format!")
+		//log.Error("Fatal: never happen because we've control the format!")
 	}
 
 	if t.Fsp > 0 {

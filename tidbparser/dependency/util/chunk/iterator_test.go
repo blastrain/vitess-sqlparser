@@ -15,8 +15,8 @@ package chunk
 
 import (
 	"github.com/pingcap/check"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 )
 
 func (s *testChunkSuite) TestIterator(c *check.C) {

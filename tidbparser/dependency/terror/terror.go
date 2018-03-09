@@ -21,7 +21,6 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	log "github.com/sirupsen/logrus"
 )
 
 // Global error instances.
@@ -273,12 +272,12 @@ var defaultMySQLErrorCode uint16
 func (e *Error) getMySQLErrorCode() uint16 {
 	codeMap, ok := ErrClassToMySQLCodes[e.class]
 	if !ok {
-		log.Warnf("Unknown error class: %v", e.class)
+		//log.Warnf("Unknown error class: %v", e.class)
 		return defaultMySQLErrorCode
 	}
 	code, ok := codeMap[e.code]
 	if !ok {
-		log.Warnf("Unknown error class: %v code: %v", e.class, e.code)
+		//log.Warnf("Unknown error class: %v code: %v", e.class, e.code)
 		return defaultMySQLErrorCode
 	}
 	return code
@@ -324,7 +323,7 @@ func ErrorNotEqual(err1, err2 error) bool {
 // MustNil fatals if err is not nil.
 func MustNil(err error) {
 	if err != nil {
-		log.Fatalf(errors.ErrorStack(err))
+		//log.Fatalf(errors.ErrorStack(err))
 	}
 }
 
@@ -332,13 +331,13 @@ func MustNil(err error) {
 func Call(fn func() error) {
 	err := fn()
 	if err != nil {
-		log.Error(errors.ErrorStack(err))
+		//log.Error(errors.ErrorStack(err))
 	}
 }
 
 // Log logs the error if it is not nil.
 func Log(err error) {
 	if err != nil {
-		log.Error(errors.ErrorStack(err))
+		//log.Error(errors.ErrorStack(err))
 	}
 }
