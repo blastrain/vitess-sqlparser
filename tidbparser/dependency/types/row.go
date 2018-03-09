@@ -13,7 +13,7 @@
 
 package types
 
-import "github.com/pingcap/tidb/types/json"
+import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
 
 // Row is an interface to read columns values.
 type Row interface {

@@ -14,8 +14,8 @@
 package ast
 
 import (
-	"github.com/pingcap/tidb/model"
-	"github.com/pingcap/tidb/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 )
 
 var (

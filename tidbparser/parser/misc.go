@@ -16,8 +16,8 @@ package parser
 import (
 	"strings"
 
-	"github.com/pingcap/tidb/util/charset"
-	"github.com/pingcap/tidb/util/hack"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 func isLetter(ch rune) bool {

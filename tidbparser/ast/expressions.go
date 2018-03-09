@@ -20,11 +20,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pingcap/tidb/model"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/parser/opcode"
-	"github.com/pingcap/tidb/sessionctx"
-	"github.com/pingcap/tidb/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/parser/opcode"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 )
 
 var (

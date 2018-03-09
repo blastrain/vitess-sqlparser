@@ -24,9 +24,9 @@ import (
 	"unicode"
 
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/sessionctx/stmtctx"
-	"github.com/pingcap/tidb/terror"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
 	log "github.com/sirupsen/logrus"
 )
 

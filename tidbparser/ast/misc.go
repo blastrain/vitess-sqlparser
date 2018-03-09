@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pingcap/tidb/model"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/sessionctx"
-	"github.com/pingcap/tidb/util/auth"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/auth"
 )
 
 var (

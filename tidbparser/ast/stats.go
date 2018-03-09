@@ -13,7 +13,7 @@
 
 package ast
 
-import "github.com/pingcap/tidb/model"
+import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
 
 var (
 	_ StmtNode = &AnalyzeTableStmt{}

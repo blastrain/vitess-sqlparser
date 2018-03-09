@@ -26,8 +26,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/terror"
-	"github.com/pingcap/tidb/util/hack"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 /*

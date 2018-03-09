@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/terror"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
 )
 
 // UserIdentity represents username and hostname.

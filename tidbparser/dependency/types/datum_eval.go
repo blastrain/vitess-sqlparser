@@ -18,8 +18,8 @@ import (
 
 	"github.com/cznic/mathutil"
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/parser/opcode"
-	"github.com/pingcap/tidb/sessionctx/stmtctx"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/parser/opcode"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
 )
 
 // CoerceArithmetic converts datum to appropriate datum for arithmetic computing.

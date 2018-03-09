@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
 )
 
 // Charset is a charset.

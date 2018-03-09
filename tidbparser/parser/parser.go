@@ -32,13 +32,13 @@ import __yyfmt__ "fmt"
 import (
 	"strings"
 
-	"github.com/pingcap/tidb/ast"
-	"github.com/pingcap/tidb/model"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/parser/opcode"
-	"github.com/pingcap/tidb/types"
-	"github.com/pingcap/tidb/util/auth"
-	"github.com/pingcap/tidb/util/charset"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/parser/opcode"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/auth"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
 )
 
 type yySymType struct {

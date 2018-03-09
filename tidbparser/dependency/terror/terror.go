@@ -20,7 +20,7 @@ import (
 	"strconv"
 
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
 	log "github.com/sirupsen/logrus"
 )
 

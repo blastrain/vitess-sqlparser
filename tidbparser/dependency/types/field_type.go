@@ -19,10 +19,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/types/json"
-	"github.com/pingcap/tidb/util/charset"
-	"github.com/pingcap/tidb/util/format"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/format"
 )
 
 // UnspecifiedLength is unspecified length.

@@ -23,11 +23,11 @@ import (
 	"unicode/utf8"
 
 	"github.com/juju/errors"
-	"github.com/pingcap/tidb/mysql"
-	"github.com/pingcap/tidb/sessionctx/stmtctx"
-	"github.com/pingcap/tidb/types/json"
-	"github.com/pingcap/tidb/util/charset"
-	"github.com/pingcap/tidb/util/hack"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
+	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 // Kind constants.
@@ -1088,8 +1088,8 @@ func ProduceDecWithSpecifiedTp(dec *MyDecimal, tp *FieldType, sc *stmtctx.Statem
 			}
 			if !dec.IsZero() && frac > decimal && dec.Compare(&old) != 0 {
 				if sc.InInsertStmt || sc.InUpdateOrDeleteStmt {
-					// fix https://github.com/pingcap/tidb/issues/3895
-					// fix https://github.com/pingcap/tidb/issues/5532
+					// fix https://github.com/knocknote/vitess-sqlparser/tidbparser/issues/3895
+					// fix https://github.com/knocknote/vitess-sqlparser/tidbparser/issues/5532
 					sc.AppendWarning(ErrTruncated)
 					err = nil
 				} else {
