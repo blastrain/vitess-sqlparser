@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mysql
+package types
 
 import (
 	"strconv"
@@ -55,7 +55,7 @@ func ParseSetName(elems []string, name string) (Set, error) {
 	for i, n := range elems {
 		key := strings.ToLower(n)
 		if _, ok := marked[key]; ok {
-			value |= (1 << uint64(i))
+			value |= 1 << uint64(i)
 			delete(marked, key)
 			items = append(items, n)
 		}

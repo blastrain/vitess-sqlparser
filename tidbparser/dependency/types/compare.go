@@ -1,7 +1,3 @@
-// Copyright 2014 The ql Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSES/QL-LICENSE file.
-
 // Copyright 2015 PingCAP, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,14 +55,4 @@ func CompareString(x, y string) int {
 	}
 
 	return 1
-}
-
-// Compare returns an integer comparing the interface a with b.
-// a > b -> 1
-// a = b -> 0
-// a < b -> -1
-func Compare(a, b interface{}) (int, error) {
-	aDatum := NewDatum(a)
-	bDatum := NewDatum(b)
-	return aDatum.CompareDatum(bDatum)
 }

@@ -14,14 +14,11 @@
 package ast
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
+	"io"
 
-	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/distinct"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/types"
+	"github.com/pingcap/tidb/model"
+	"github.com/pingcap/tidb/types"
 )
 
 var (
@@ -32,29 +29,30 @@ var (
 
 // List scalar function names.
 const (
-	AndAnd     = "&&"
-	LeftShift  = "<<"
-	RightShift = ">>"
-	OrOr       = "||"
-	GE         = ">="
-	LE         = "<="
-	EQ         = "="
-	NE         = "!="
-	LT         = "<"
-	GT         = ">"
-	Plus       = "+"
-	Minus      = "-"
-	And        = "&"
-	Or         = "|"
-	Mod        = "%"
-	Xor        = "^"
-	Div        = "/"
-	Mul        = "*"
-	UnaryNot   = "!" // Avoid name conflict with Not in github/pingcap/check.
-	BitNeg     = "~"
-	IntDiv     = "DIV"
-	LogicXor   = "XOR"
-	NullEQ     = "<=>"
+	LogicAnd   = "and"
+	Cast       = "cast"
+	LeftShift  = "leftshift"
+	RightShift = "rightshift"
+	LogicOr    = "or"
+	GE         = "ge"
+	LE         = "le"
+	EQ         = "eq"
+	NE         = "ne"
+	LT         = "lt"
+	GT         = "gt"
+	Plus       = "plus"
+	Minus      = "minus"
+	And        = "bitand"
+	Or         = "bitor"
+	Mod        = "mod"
+	Xor        = "bitxor"
+	Div        = "div"
+	Mul        = "mul"
+	UnaryNot   = "not" // Avoid name conflict with Not in github/pingcap/check.
+	BitNeg     = "bitneg"
+	IntDiv     = "intdiv"
+	LogicXor   = "xor"
+	NullEQ     = "nulleq"
 	UnaryPlus  = "unaryplus"
 	UnaryMinus = "unaryminus"
 	In         = "in"
@@ -67,6 +65,242 @@ const (
 	RowFunc    = "row"
 	SetVar     = "setvar"
 	GetVar     = "getvar"
+	Values     = "values"
+	BitCount   = "bit_count"
+	GetParam   = "getparam"
+
+	// common functions
+	Coalesce = "coalesce"
+	Greatest = "greatest"
+	Least    = "least"
+	Interval = "interval"
+
+	// math functions
+	Abs      = "abs"
+	Acos     = "acos"
+	Asin     = "asin"
+	Atan     = "atan"
+	Atan2    = "atan2"
+	Ceil     = "ceil"
+	Ceiling  = "ceiling"
+	Conv     = "conv"
+	Cos      = "cos"
+	Cot      = "cot"
+	CRC32    = "crc32"
+	Degrees  = "degrees"
+	Exp      = "exp"
+	Floor    = "floor"
+	Ln       = "ln"
+	Log      = "log"
+	Log2     = "log2"
+	Log10    = "log10"
+	PI       = "pi"
+	Pow      = "pow"
+	Power    = "power"
+	Radians  = "radians"
+	Rand     = "rand"
+	Round    = "round"
+	Sign     = "sign"
+	Sin      = "sin"
+	Sqrt     = "sqrt"
+	Tan      = "tan"
+	Truncate = "truncate"
+
+	// time functions
+	AddDate          = "adddate"
+	AddTime          = "addtime"
+	ConvertTz        = "convert_tz"
+	Curdate          = "curdate"
+	CurrentDate      = "current_date"
+	CurrentTime      = "current_time"
+	CurrentTimestamp = "current_timestamp"
+	Curtime          = "curtime"
+	Date             = "date"
+	DateLiteral      = "dateliteral"
+	DateAdd          = "date_add"
+	DateFormat       = "date_format"
+	DateSub          = "date_sub"
+	DateDiff         = "datediff"
+	Day              = "day"
+	DayName          = "dayname"
+	DayOfMonth       = "dayofmonth"
+	DayOfWeek        = "dayofweek"
+	DayOfYear        = "dayofyear"
+	Extract          = "extract"
+	FromDays         = "from_days"
+	FromUnixTime     = "from_unixtime"
+	GetFormat        = "get_format"
+	Hour             = "hour"
+	LocalTime        = "localtime"
+	LocalTimestamp   = "localtimestamp"
+	MakeDate         = "makedate"
+	MakeTime         = "maketime"
+	MicroSecond      = "microsecond"
+	Minute           = "minute"
+	Month            = "month"
+	MonthName        = "monthname"
+	Now              = "now"
+	PeriodAdd        = "period_add"
+	PeriodDiff       = "period_diff"
+	Quarter          = "quarter"
+	SecToTime        = "sec_to_time"
+	Second           = "second"
+	StrToDate        = "str_to_date"
+	SubDate          = "subdate"
+	SubTime          = "subtime"
+	Sysdate          = "sysdate"
+	Time             = "time"
+	TimeLiteral      = "timeliteral"
+	TimeFormat       = "time_format"
+	TimeToSec        = "time_to_sec"
+	TimeDiff         = "timediff"
+	Timestamp        = "timestamp"
+	TimestampLiteral = "timestampliteral"
+	TimestampAdd     = "timestampadd"
+	TimestampDiff    = "timestampdiff"
+	ToDays           = "to_days"
+	ToSeconds        = "to_seconds"
+	UnixTimestamp    = "unix_timestamp"
+	UTCDate          = "utc_date"
+	UTCTime          = "utc_time"
+	UTCTimestamp     = "utc_timestamp"
+	Week             = "week"
+	Weekday          = "weekday"
+	WeekOfYear       = "weekofyear"
+	Year             = "year"
+	YearWeek         = "yearweek"
+	LastDay          = "last_day"
+
+	// string functions
+	ASCII           = "ascii"
+	Bin             = "bin"
+	Concat          = "concat"
+	ConcatWS        = "concat_ws"
+	Convert         = "convert"
+	Elt             = "elt"
+	ExportSet       = "export_set"
+	Field           = "field"
+	Format          = "format"
+	FromBase64      = "from_base64"
+	InsertFunc      = "insert_func"
+	Instr           = "instr"
+	Lcase           = "lcase"
+	Left            = "left"
+	Length          = "length"
+	LoadFile        = "load_file"
+	Locate          = "locate"
+	Lower           = "lower"
+	Lpad            = "lpad"
+	LTrim           = "ltrim"
+	MakeSet         = "make_set"
+	Mid             = "mid"
+	Oct             = "oct"
+	Ord             = "ord"
+	Position        = "position"
+	Quote           = "quote"
+	Repeat          = "repeat"
+	Replace         = "replace"
+	Reverse         = "reverse"
+	Right           = "right"
+	RTrim           = "rtrim"
+	Space           = "space"
+	Strcmp          = "strcmp"
+	Substring       = "substring"
+	Substr          = "substr"
+	SubstringIndex  = "substring_index"
+	ToBase64        = "to_base64"
+	Trim            = "trim"
+	Upper           = "upper"
+	Ucase           = "ucase"
+	Hex             = "hex"
+	Unhex           = "unhex"
+	Rpad            = "rpad"
+	BitLength       = "bit_length"
+	CharFunc        = "char_func"
+	CharLength      = "char_length"
+	CharacterLength = "character_length"
+	FindInSet       = "find_in_set"
+
+	// information functions
+	Benchmark    = "benchmark"
+	Charset      = "charset"
+	Coercibility = "coercibility"
+	Collation    = "collation"
+	ConnectionID = "connection_id"
+	CurrentUser  = "current_user"
+	Database     = "database"
+	FoundRows    = "found_rows"
+	LastInsertId = "last_insert_id"
+	RowCount     = "row_count"
+	Schema       = "schema"
+	SessionUser  = "session_user"
+	SystemUser   = "system_user"
+	User         = "user"
+	Version      = "version"
+	TiDBVersion  = "tidb_version"
+
+	// control functions
+	If     = "if"
+	Ifnull = "ifnull"
+	Nullif = "nullif"
+
+	// miscellaneous functions
+	AnyValue        = "any_value"
+	DefaultFunc     = "default_func"
+	InetAton        = "inet_aton"
+	InetNtoa        = "inet_ntoa"
+	Inet6Aton       = "inet6_aton"
+	Inet6Ntoa       = "inet6_ntoa"
+	IsFreeLock      = "is_free_lock"
+	IsIPv4          = "is_ipv4"
+	IsIPv4Compat    = "is_ipv4_compat"
+	IsIPv4Mapped    = "is_ipv4_mapped"
+	IsIPv6          = "is_ipv6"
+	IsUsedLock      = "is_used_lock"
+	MasterPosWait   = "master_pos_wait"
+	NameConst       = "name_const"
+	ReleaseAllLocks = "release_all_locks"
+	Sleep           = "sleep"
+	UUID            = "uuid"
+	UUIDShort       = "uuid_short"
+	// get_lock() and release_lock() is parsed but do nothing.
+	// It is used for preventing error in Ruby's activerecord migrations.
+	GetLock     = "get_lock"
+	ReleaseLock = "release_lock"
+
+	// encryption and compression functions
+	AesDecrypt               = "aes_decrypt"
+	AesEncrypt               = "aes_encrypt"
+	Compress                 = "compress"
+	Decode                   = "decode"
+	DesDecrypt               = "des_decrypt"
+	DesEncrypt               = "des_encrypt"
+	Encode                   = "encode"
+	Encrypt                  = "encrypt"
+	MD5                      = "md5"
+	OldPassword              = "old_password"
+	PasswordFunc             = "password_func"
+	RandomBytes              = "random_bytes"
+	SHA1                     = "sha1"
+	SHA                      = "sha"
+	SHA2                     = "sha2"
+	Uncompress               = "uncompress"
+	UncompressedLength       = "uncompressed_length"
+	ValidatePasswordStrength = "validate_password_strength"
+
+	// json functions
+	JSONType     = "json_type"
+	JSONExtract  = "json_extract"
+	JSONUnquote  = "json_unquote"
+	JSONArray    = "json_array"
+	JSONObject   = "json_object"
+	JSONMerge    = "json_merge"
+	JSONValid    = "json_valid"
+	JSONSet      = "json_set"
+	JSONInsert   = "json_insert"
+	JSONReplace  = "json_replace"
+	JSONRemove   = "json_remove"
+	JSONContains = "json_contains"
 )
 
 // FuncCallExpr is for function expression.
@@ -76,6 +310,39 @@ type FuncCallExpr struct {
 	FnName model.CIStr
 	// Args is the function args.
 	Args []ExprNode
+}
+
+// Format the ExprNode into a Writer.
+func (n *FuncCallExpr) Format(w io.Writer) {
+	fmt.Fprintf(w, "%s(", n.FnName.L)
+	if !n.specialFormatArgs(w) {
+		for i, arg := range n.Args {
+			arg.Format(w)
+			if i != len(n.Args)-1 {
+				fmt.Fprint(w, ", ")
+			}
+		}
+	}
+	fmt.Fprint(w, ")")
+}
+
+// specialFormatArgs formats argument list for some special functions.
+func (n *FuncCallExpr) specialFormatArgs(w io.Writer) bool {
+	switch n.FnName.L {
+	case DateAdd, DateSub, AddDate, SubDate:
+		n.Args[0].Format(w)
+		fmt.Fprint(w, ", INTERVAL ")
+		n.Args[1].Format(w)
+		fmt.Fprintf(w, " %s", n.Args[2].GetDatum().GetString())
+		return true
+	case TimestampAdd, TimestampDiff:
+		fmt.Fprintf(w, "%s, ", n.Args[0].GetDatum().GetString())
+		n.Args[1].Format(w)
+		fmt.Fprint(w, ", ")
+		n.Args[2].Format(w)
+		return true
+	}
+	return false
 }
 
 // Accept implements Node interface.
@@ -113,8 +380,29 @@ type FuncCastExpr struct {
 	Expr ExprNode
 	// Tp is the conversion type.
 	Tp *types.FieldType
-	// Cast, Convert and Binary share this struct.
+	// FunctionType is either Cast, Convert or Binary.
 	FunctionType CastFunctionType
+}
+
+// Format the ExprNode into a Writer.
+func (n *FuncCastExpr) Format(w io.Writer) {
+	switch n.FunctionType {
+	case CastFunction:
+		fmt.Fprint(w, "CAST(")
+		n.Expr.Format(w)
+		fmt.Fprint(w, " AS ")
+		n.Tp.FormatAsCastType(w)
+		fmt.Fprint(w, ")")
+	case CastConvertFunction:
+		fmt.Fprint(w, "CONVERT(")
+		n.Expr.Format(w)
+		fmt.Fprint(w, ", ")
+		n.Tp.FormatAsCastType(w)
+		fmt.Fprint(w, ")")
+	case CastBinaryOperator:
+		fmt.Fprint(w, "BINARY ")
+		n.Expr.Format(w)
+	}
 }
 
 // Accept implements Node Accept interface.
@@ -150,21 +438,15 @@ const (
 type DateArithType byte
 
 const (
-	// DateAdd is to run adddate or date_add function option.
+	// DateArithAdd is to run adddate or date_add function option.
 	// See https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_adddate
 	// See https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_date-add
-	DateAdd DateArithType = iota + 1
-	// DateSub is to run subdate or date_sub function option.
+	DateArithAdd DateArithType = iota + 1
+	// DateArithSub is to run subdate or date_sub function option.
 	// See https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_subdate
 	// See https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_date-sub
-	DateSub
+	DateArithSub
 )
-
-// DateArithInterval is the struct of DateArith interval part.
-type DateArithInterval struct {
-	Unit     string
-	Interval ExprNode
-}
 
 const (
 	// AggFuncCount is the name of Count function.
@@ -181,6 +463,12 @@ const (
 	AggFuncMin = "min"
 	// AggFuncGroupConcat is the name of group_concat function.
 	AggFuncGroupConcat = "group_concat"
+	// AggFuncBitOr is the name of bit_or function.
+	AggFuncBitOr = "bit_or"
+	// AggFuncBitXor is the name of bit_xor function.
+	AggFuncBitXor = "bit_xor"
+	// AggFuncBitAnd is the name of bit_and function.
+	AggFuncBitAnd = "bit_and"
 )
 
 // AggregateFuncExpr represents aggregate function expression.
@@ -190,15 +478,15 @@ type AggregateFuncExpr struct {
 	F string
 	// Args is the function args.
 	Args []ExprNode
-	// If distinct is true, the function only aggregate distinct values.
+	// Distinct is true, function hence only aggregate distinct values.
 	// For example, column c1 values are "1", "2", "2",  "sum(c1)" is "5",
 	// but "sum(distinct c1)" is "3".
 	Distinct bool
+}
 
-	CurrentGroup []byte
-	// contextPerGroupMap is used to store aggregate evaluation context.
-	// Each entry for a group.
-	contextPerGroupMap map[string](*AggEvaluateContext)
+// Format the ExprNode into a Writer.
+func (n *AggregateFuncExpr) Format(w io.Writer) {
+	panic("Not implemented")
 }
 
 // Accept implements Node Accept interface.
@@ -216,227 +504,4 @@ func (n *AggregateFuncExpr) Accept(v Visitor) (Node, bool) {
 		n.Args[i] = node.(ExprNode)
 	}
 	return v.Leave(n)
-}
-
-// Clear clears aggregate computing context.
-func (n *AggregateFuncExpr) Clear() {
-	n.CurrentGroup = []byte{}
-	n.contextPerGroupMap = nil
-}
-
-// Update is used for update aggregate context.
-func (n *AggregateFuncExpr) Update() error {
-	name := strings.ToLower(n.F)
-	switch name {
-	case AggFuncCount:
-		return n.updateCount()
-	case AggFuncFirstRow:
-		return n.updateFirstRow()
-	case AggFuncGroupConcat:
-		return n.updateGroupConcat()
-	case AggFuncMax:
-		return n.updateMaxMin(true)
-	case AggFuncMin:
-		return n.updateMaxMin(false)
-	case AggFuncSum, AggFuncAvg:
-		return n.updateSum()
-	}
-	return nil
-}
-
-// GetContext gets aggregate evaluation context for the current group.
-// If it is nil, add a new context into contextPerGroupMap.
-func (n *AggregateFuncExpr) GetContext() *AggEvaluateContext {
-	if n.contextPerGroupMap == nil {
-		n.contextPerGroupMap = make(map[string](*AggEvaluateContext))
-	}
-	if _, ok := n.contextPerGroupMap[string(n.CurrentGroup)]; !ok {
-		c := &AggEvaluateContext{}
-		if n.Distinct {
-			c.DistinctChecker = distinct.CreateDistinctChecker()
-		}
-		n.contextPerGroupMap[string(n.CurrentGroup)] = c
-	}
-	return n.contextPerGroupMap[string(n.CurrentGroup)]
-}
-
-// SetContext sets the aggregate expr evaluation context.
-func (n *AggregateFuncExpr) SetContext(ctx map[string](*AggEvaluateContext)) {
-	n.contextPerGroupMap = ctx
-}
-
-func (n *AggregateFuncExpr) updateCount() error {
-	ctx := n.GetContext()
-	vals := make([]interface{}, 0, len(n.Args))
-	for _, a := range n.Args {
-		value := a.GetValue()
-		if value == nil {
-			return nil
-		}
-		vals = append(vals, value)
-	}
-	if n.Distinct {
-		d, err := ctx.DistinctChecker.Check(vals)
-		if err != nil {
-			return errors.Trace(err)
-		}
-		if !d {
-			return nil
-		}
-	}
-	ctx.Count++
-	return nil
-}
-
-func (n *AggregateFuncExpr) updateFirstRow() error {
-	ctx := n.GetContext()
-	if !ctx.Value.IsNull() {
-		return nil
-	}
-	if len(n.Args) != 1 {
-		return errors.New("Wrong number of args for AggFuncFirstRow")
-	}
-	ctx.Value = *n.Args[0].GetDatum()
-	return nil
-}
-
-func (n *AggregateFuncExpr) updateMaxMin(max bool) error {
-	ctx := n.GetContext()
-	if len(n.Args) != 1 {
-		return errors.New("Wrong number of args for AggFuncFirstRow")
-	}
-	v := *n.Args[0].GetDatum()
-	if ctx.Value.IsNull() {
-		ctx.Value = v
-		return nil
-	}
-	c, err := ctx.Value.CompareDatum(v)
-	if err != nil {
-		return errors.Trace(err)
-	}
-	if max {
-		if c == -1 {
-			ctx.Value = v
-		}
-	} else {
-		if c == 1 {
-			ctx.Value = v
-		}
-
-	}
-	return nil
-}
-
-func (n *AggregateFuncExpr) updateSum() error {
-	ctx := n.GetContext()
-	value := *n.Args[0].GetDatum()
-	if value.IsNull() {
-		return nil
-	}
-	if n.Distinct {
-		d, err := ctx.DistinctChecker.Check([]interface{}{value.GetValue()})
-		if err != nil {
-			return errors.Trace(err)
-		}
-		if !d {
-			return nil
-		}
-	}
-	var err error
-	ctx.Value, err = types.CalculateSum(ctx.Value, value)
-	if err != nil {
-		return errors.Trace(err)
-	}
-	ctx.Count++
-	return nil
-}
-
-func (n *AggregateFuncExpr) updateGroupConcat() error {
-	ctx := n.GetContext()
-	vals := make([]interface{}, 0, len(n.Args))
-	for _, a := range n.Args {
-		value := a.GetValue()
-		if value == nil {
-			return nil
-		}
-		vals = append(vals, value)
-	}
-	if n.Distinct {
-		d, err := ctx.DistinctChecker.Check(vals)
-		if err != nil {
-			return errors.Trace(err)
-		}
-		if !d {
-			return nil
-		}
-	}
-	if ctx.Buffer == nil {
-		ctx.Buffer = &bytes.Buffer{}
-	} else {
-		// now use comma separator
-		ctx.Buffer.WriteString(",")
-	}
-	for _, val := range vals {
-		ctx.Buffer.WriteString(fmt.Sprintf("%v", val))
-	}
-	// TODO: if total length is greater than global var group_concat_max_len, truncate it.
-	return nil
-}
-
-// AggregateFuncExtractor visits Expr tree.
-// It converts ColunmNameExpr to AggregateFuncExpr and collects AggregateFuncExpr.
-type AggregateFuncExtractor struct {
-	inAggregateFuncExpr bool
-	// AggFuncs is the collected AggregateFuncExprs.
-	AggFuncs   []*AggregateFuncExpr
-	extracting bool
-}
-
-// Enter implements Visitor interface.
-func (a *AggregateFuncExtractor) Enter(n Node) (node Node, skipChildren bool) {
-	switch n.(type) {
-	case *AggregateFuncExpr:
-		a.inAggregateFuncExpr = true
-	case *SelectStmt, *InsertStmt, *DeleteStmt, *UpdateStmt:
-		// Enter a new context, skip it.
-		// For example: select sum(c) + c + exists(select c from t) from t;
-		if a.extracting {
-			return n, true
-		}
-	}
-	a.extracting = true
-	return n, false
-}
-
-// Leave implements Visitor interface.
-func (a *AggregateFuncExtractor) Leave(n Node) (node Node, ok bool) {
-	switch v := n.(type) {
-	case *AggregateFuncExpr:
-		a.inAggregateFuncExpr = false
-		a.AggFuncs = append(a.AggFuncs, v)
-	case *ColumnNameExpr:
-		// compose new AggregateFuncExpr
-		if !a.inAggregateFuncExpr {
-			// For example: select sum(c) + c from t;
-			// The c in sum() should be evaluated for each row.
-			// The c after plus should be evaluated only once.
-			agg := &AggregateFuncExpr{
-				F:    AggFuncFirstRow,
-				Args: []ExprNode{v},
-			}
-			agg.SetFlag((v.GetFlag() | FlagHasAggregateFunc))
-			agg.SetType(v.GetType())
-			a.AggFuncs = append(a.AggFuncs, agg)
-			return agg, true
-		}
-	}
-	return n, true
-}
-
-// AggEvaluateContext is used to store intermediate result when calculating aggregate functions.
-type AggEvaluateContext struct {
-	DistinctChecker *distinct.Checker
-	Count           int64
-	Value           types.Datum
-	Buffer          *bytes.Buffer // Buffer is used for group_concat.
 }

@@ -15,9 +15,10 @@ package types
 
 import (
 	"math"
+	"strings"
+	"unicode"
 
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
 )
 
 // RoundFloat rounds float val to the nearest integer value with float64 format, like MySQL Round function.
@@ -38,9 +39,24 @@ func RoundFloat(f float64) float64 {
 // value f to become zero.
 func Round(f float64, dec int) float64 {
 	shift := math.Pow10(dec)
-	f = f * shift
-	f = RoundFloat(f)
-	return f / shift
+	tmp := f * shift
+	if math.IsInf(tmp, 0) {
+		return f
+	}
+	return RoundFloat(tmp) / shift
+}
+
+// Truncate truncates the argument f to dec decimal places.
+// dec defaults to 0 if not specified. dec can be negative
+// to cause dec digits left of the decimal point of the
+// value f to become zero.
+func Truncate(f float64, dec int) float64 {
+	shift := math.Pow10(dec)
+	tmp := f * shift
+	if math.IsInf(tmp, 0) {
+		return f
+	}
+	return math.Trunc(tmp) / shift
 }
 
 func getMaxFloat(flen int, decimal int) float64 {
@@ -50,79 +66,93 @@ func getMaxFloat(flen int, decimal int) float64 {
 	return f
 }
 
-func truncateFloat(f float64, decimal int) float64 {
-	pow := math.Pow10(decimal)
-	t := (f - math.Floor(f)) * pow
-
-	round := RoundFloat(t)
-
-	f = math.Floor(f) + round/pow
-	return f
-}
-
 // TruncateFloat tries to truncate f.
 // If the result exceeds the max/min float that flen/decimal allowed, returns the max/min float allowed.
 func TruncateFloat(f float64, flen int, decimal int) (float64, error) {
 	if math.IsNaN(f) {
 		// nan returns 0
-		return 0, nil
+		return 0, ErrOverflow.GenByArgs("DOUBLE", "")
 	}
 
 	maxF := getMaxFloat(flen, decimal)
 
 	if !math.IsInf(f, 0) {
-		f = truncateFloat(f, decimal)
+		f = Round(f, decimal)
 	}
 
+	var err error
 	if f > maxF {
 		f = maxF
+		err = ErrOverflow.GenByArgs("DOUBLE", "")
 	} else if f < -maxF {
 		f = -maxF
+		err = ErrOverflow.GenByArgs("DOUBLE", "")
 	}
 
-	return f, nil
+	return f, errors.Trace(err)
 }
 
-// CalculateSum adds v to sum.
-func CalculateSum(sum Datum, v Datum) (Datum, error) {
-	// for avg and sum calculation
-	// avg and sum use decimal for integer and decimal type, use float for others
-	// see https://dev.mysql.com/doc/refman/5.7/en/group-by-functions.html
-	var (
-		data Datum
-		err  error
-	)
+func isSpace(c byte) bool {
+	return c == ' ' || c == '\t'
+}
 
-	switch v.Kind() {
-	case KindNull:
-	case KindInt64, KindUint64:
-		var d mysql.Decimal
-		d, err = v.ToDecimal()
-		if err == nil {
-			data = NewDecimalDatum(d)
-		}
-	case KindMysqlDecimal:
-		data = v
-	default:
-		var f float64
-		f, err = v.ToFloat64()
-		if err == nil {
-			data = NewFloat64Datum(f)
-		}
-	}
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
 
-	if err != nil {
-		return data, errors.Trace(err)
+func myMax(a, b int) int {
+	if a > b {
+		return a
 	}
-	if data.IsNull() {
-		return sum, nil
+	return b
+}
+
+func myMaxInt8(a, b int8) int8 {
+	if a > b {
+		return a
 	}
-	switch sum.Kind() {
-	case KindNull:
-		return data, nil
-	case KindFloat64, KindMysqlDecimal:
-		return ComputePlus(sum, data)
-	default:
-		return data, errors.Errorf("invalid value %v for aggregate", sum.Kind())
+	return b
+}
+
+func myMin(a, b int) int {
+	if a < b {
+		return a
 	}
+	return b
+}
+
+func myMinInt8(a, b int8) int8 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// strToInt converts a string to an integer in best effort.
+// TODO: handle overflow and add unittest.
+func strToInt(str string) (int64, error) {
+	str = strings.TrimSpace(str)
+	if len(str) == 0 {
+		return 0, nil
+	}
+	negative := false
+	i := 0
+	if str[i] == '-' {
+		negative = true
+		i++
+	} else if str[i] == '+' {
+		i++
+	}
+	r := int64(0)
+	for ; i < len(str); i++ {
+		if !unicode.IsDigit(rune(str[i])) {
+			break
+		}
+		r = r*10 + int64(str[i]-'0')
+	}
+	if negative {
+		r = -r
+	}
+	// TODO: if i < len(str), we should return an error.
+	return r, nil
 }

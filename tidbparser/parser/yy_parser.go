@@ -17,51 +17,45 @@ import (
 	"math"
 	"regexp"
 	"strconv"
-	"strings"
 	"unicode"
 
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
+	"github.com/pingcap/tidb/ast"
+	"github.com/pingcap/tidb/mysql"
+	"github.com/pingcap/tidb/terror"
+	"github.com/pingcap/tidb/types"
+	"github.com/pingcap/tidb/util/hack"
 )
 
-// UseNewLexer provides a switch for the tidb-server binary.
-var UseNewLexer bool = true
-
-// Error instances.
-var (
-	ErrSyntax = terror.ClassParser.New(CodeSyntaxErr, "syntax error")
-)
-
-// Error codes.
 const (
-	CodeSyntaxErr terror.ErrCode = 1
+	codeErrParse  = terror.ErrCode(mysql.ErrParse)
+	codeErrSyntax = terror.ErrCode(mysql.ErrSyntax)
 )
 
 var (
-	specCodePattern = regexp.MustCompile(`\/\*!(M?[0-9]{5,6})?([^*]|\*+[^*/])*\*+\/`)
-	specCodeStart   = regexp.MustCompile(`^\/\*!(M?[0-9]{5,6} )?[ \t]*`)
-	specCodeEnd     = regexp.MustCompile(`[ \t]*\*\/$`)
+	// ErrSyntax returns for sql syntax error.
+	ErrSyntax = terror.ClassParser.New(codeErrSyntax, mysql.MySQLErrName[mysql.ErrSyntax])
+	// ErrParse returns for sql parse error.
+	ErrParse = terror.ClassParser.New(codeErrParse, mysql.MySQLErrName[mysql.ErrParse])
+	// SpecFieldPattern special result field pattern
+	SpecFieldPattern = regexp.MustCompile(`(\/\*!(M?[0-9]{5,6})?|\*\/)`)
+	specCodePattern  = regexp.MustCompile(`\/\*!(M?[0-9]{5,6})?([^*]|\*+[^*/])*\*+\/`)
+	specCodeStart    = regexp.MustCompile(`^\/\*!(M?[0-9]{5,6})?[ \t]*`)
+	specCodeEnd      = regexp.MustCompile(`[ \t]*\*\/$`)
 )
 
-func trimComment(txt string) string {
-	txt = specCodeStart.ReplaceAllString(txt, "")
-	return specCodeEnd.ReplaceAllString(txt, "")
+func init() {
+	parserMySQLErrCodes := map[terror.ErrCode]uint16{
+		codeErrSyntax: mysql.ErrSyntax,
+		codeErrParse:  mysql.ErrParse,
+	}
+	terror.ErrClassToMySQLCodes[terror.ClassParser] = parserMySQLErrCodes
 }
 
-// See http://dev.mysql.com/doc/refman/5.7/en/comments.html
-// Convert "/*!VersionNumber MySQL-specific-code */" to "MySQL-specific-code".
-// TODO: Find a better way:
-// 1. RegExpr is slow.
-// 2. Handle nested comment.
-func handleMySQLSpecificCode(sql string) string {
-	if strings.Index(sql, "/*!") == -1 {
-		// Fast way to check if text contains MySQL-specific code.
-		return sql
-	}
-	// SQL text contains MySQL-specific code. We should convert it to normal SQL text.
-	return specCodePattern.ReplaceAllStringFunc(sql, trimComment)
+// TrimComment trim comment for special comment code of MySQL.
+func TrimComment(txt string) string {
+	txt = specCodeStart.ReplaceAllString(txt, "")
+	return specCodeEnd.ReplaceAllString(txt, "")
 }
 
 // Parser represents a parser instance. Some temporary objects are stored in it to reduce object allocation during Parse function.
@@ -103,19 +97,16 @@ func (parser *Parser) Parse(sql, charset, collation string) ([]ast.StmtNode, err
 	parser.src = sql
 	parser.result = parser.result[:0]
 
-	sql = handleMySQLSpecificCode(sql)
-
 	var l yyLexer
-	if UseNewLexer {
-		parser.lexer.reset(sql)
-		l = &parser.lexer
-	} else {
-		l = NewLexer(sql)
-	}
+	parser.lexer.reset(sql)
+	l = &parser.lexer
 	yyParse(l, parser)
 
 	if len(l.Errors()) != 0 {
 		return nil, errors.Trace(l.Errors()[0])
+	}
+	for _, stmt := range parser.result {
+		ast.SetFlag(stmt)
 	}
 	return parser.result, nil
 }
@@ -130,7 +121,21 @@ func (parser *Parser) ParseOneStmt(sql, charset, collation string) (ast.StmtNode
 	if len(stmts) != 1 {
 		return nil, ErrSyntax
 	}
+	ast.SetFlag(stmts[0])
 	return stmts[0], nil
+}
+
+// SetSQLMode sets the SQL mode for parser.
+func (parser *Parser) SetSQLMode(mode mysql.SQLMode) {
+	parser.lexer.SetSQLMode(mode)
+}
+
+// ParseErrorWith returns "You have a syntax error near..." error message compatible with mysql.
+func ParseErrorWith(errstr string, lineno int) *terror.Error {
+	if len(errstr) > mysql.ErrTextLength {
+		errstr = errstr[:mysql.ErrTextLength]
+	}
+	return ErrParse.GenByArgs(mysql.MySQLErrName[mysql.ErrSyntax], errstr, lineno)
 }
 
 // The select statement is not at the end of the whole statement, if the last
@@ -144,24 +149,11 @@ func (parser *Parser) setLastSelectFieldText(st *ast.SelectStmt, lastEnd int) {
 }
 
 func (parser *Parser) startOffset(v *yySymType) int {
-	if !UseNewLexer {
-		offset := v.offset
-		offset--
-		for unicode.IsSpace(rune(parser.src[offset])) {
-			offset++
-		}
-		return offset
-	}
-
 	return v.offset
 }
 
 func (parser *Parser) endOffset(v *yySymType) int {
 	offset := v.offset
-	if !UseNewLexer {
-		offset--
-	}
-
 	for offset > 0 && unicode.IsSpace(rune(parser.src[offset-1])) {
 		offset--
 	}
@@ -169,8 +161,20 @@ func (parser *Parser) endOffset(v *yySymType) int {
 }
 
 func toInt(l yyLexer, lval *yySymType, str string) int {
-	n, err := strconv.ParseUint(str, 0, 64)
+	n, err := strconv.ParseUint(str, 10, 64)
 	if err != nil {
+		e := err.(*strconv.NumError)
+		if e.Err == strconv.ErrRange {
+			// TODO: toDecimal maybe out of range still.
+			// This kind of error should be throw to higher level, because truncated data maybe legal.
+			// For example, this SQL returns error:
+			// create table test (id decimal(30, 0));
+			// insert into test values(123456789012345678901234567890123094839045793405723406801943850);
+			// While this SQL:
+			// select 1234567890123456789012345678901230948390457934057234068019438509023041874359081325875128590860234789847359871045943057;
+			// get value 99999999999999999999999999999999999999999999999999999999999999999
+			return toDecimal(l, lval, str)
+		}
 		l.Errorf("integer literal: %v", err)
 		return int(unicode.ReplacementChar)
 	}
@@ -179,9 +183,19 @@ func toInt(l yyLexer, lval *yySymType, str string) int {
 	case n < math.MaxInt64:
 		lval.item = int64(n)
 	default:
-		lval.item = uint64(n)
+		lval.item = n
 	}
 	return intLit
+}
+
+func toDecimal(l yyLexer, lval *yySymType, str string) int {
+	dec := new(types.MyDecimal)
+	err := dec.FromString(hack.Slice(str))
+	if err != nil {
+		l.Errorf("decimal literal: %v", err)
+	}
+	lval.item = dec
+	return decLit
 }
 
 func toFloat(l yyLexer, lval *yySymType, str string) int {
@@ -191,22 +205,16 @@ func toFloat(l yyLexer, lval *yySymType, str string) int {
 		return int(unicode.ReplacementChar)
 	}
 
-	lval.item = float64(n)
+	lval.item = n
 	return floatLit
 }
 
 // See https://dev.mysql.com/doc/refman/5.7/en/hexadecimal-literals.html
 func toHex(l yyLexer, lval *yySymType, str string) int {
-	h, err := mysql.ParseHex(str)
+	h, err := types.NewHexLiteral(str)
 	if err != nil {
-		// If parse hexadecimal literal to numerical value error, we should treat it as a string.
-		hexStr, err1 := mysql.ParseHexStr(str)
-		if err1 != nil {
-			l.Errorf("hex literal: %v", err)
-			return int(unicode.ReplacementChar)
-		}
-		lval.item = hexStr
-		return stringLit
+		l.Errorf("hex literal: %v", err)
+		return int(unicode.ReplacementChar)
 	}
 	lval.item = h
 	return hexLit
@@ -214,11 +222,21 @@ func toHex(l yyLexer, lval *yySymType, str string) int {
 
 // See https://dev.mysql.com/doc/refman/5.7/en/bit-type.html
 func toBit(l yyLexer, lval *yySymType, str string) int {
-	b, err := mysql.ParseBit(str, -1)
+	b, err := types.NewBitLiteral(str)
 	if err != nil {
 		l.Errorf("bit literal: %v", err)
 		return int(unicode.ReplacementChar)
 	}
 	lval.item = b
 	return bitLit
+}
+
+func getUint64FromNUM(num interface{}) uint64 {
+	switch v := num.(type) {
+	case int64:
+		return uint64(v)
+	case uint64:
+		return v
+	}
+	return 0
 }

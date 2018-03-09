@@ -14,7 +14,9 @@
 package ast
 
 import (
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/pingcap/tidb/model"
+	"github.com/pingcap/tidb/mysql"
+	"github.com/pingcap/tidb/util/auth"
 )
 
 var (
@@ -24,6 +26,7 @@ var (
 	_ DMLNode = &UpdateStmt{}
 	_ DMLNode = &SelectStmt{}
 	_ DMLNode = &ShowStmt{}
+	_ DMLNode = &LoadDataStmt{}
 
 	_ Node = &Assignment{}
 	_ Node = &ByItem{}
@@ -67,6 +70,10 @@ type Join struct {
 	Tp JoinType
 	// On represents join on condition.
 	On *OnCondition
+	// Using represents join using clause.
+	Using []*ColumnName
+	// NaturalJoin represents join is natural join
+	NaturalJoin bool
 }
 
 // Accept implements Node Accept interface.
@@ -224,16 +231,6 @@ func (n *TableSource) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
-// SetResultFields implements ResultSetNode interface.
-func (n *TableSource) SetResultFields(rfs []*ResultField) {
-	n.Source.SetResultFields(rfs)
-}
-
-// GetResultFields implements ResultSetNode interface.
-func (n *TableSource) GetResultFields() []*ResultField {
-	return n.Source.GetResultFields()
-}
-
 // SelectLockType is the lock type for SelectStmt.
 type SelectLockType int
 
@@ -243,6 +240,19 @@ const (
 	SelectLockForUpdate
 	SelectLockInShareMode
 )
+
+// String implements fmt.Stringer.
+func (slt SelectLockType) String() string {
+	switch slt {
+	case SelectLockNone:
+		return "none"
+	case SelectLockForUpdate:
+		return "for update"
+	case SelectLockInShareMode:
+		return "in share mode"
+	}
+	return "unsupported select lock type"
+}
 
 // WildCardField is a special type of select field content.
 type WildCardField struct {
@@ -270,11 +280,11 @@ type SelectField struct {
 
 	// Offset is used to get original text.
 	Offset int
-	// If WildCard is not nil, Expr will be nil.
+	// WildCard is not nil, Expr will be nil.
 	WildCard *WildCardField
-	// If Expr is not nil, WildCard will be nil.
+	// Expr is not nil, WildCard will be nil.
 	Expr ExprNode
-	// Alias name for Expr.
+	// AsName is alias name for Expr.
 	AsName model.CIStr
 	// Auxiliary stands for if this field is auxiliary.
 	// When we add a Field into SelectField list which is used for having/orderby clause but the field is not in select clause,
@@ -442,7 +452,9 @@ type SelectStmt struct {
 	dmlNode
 	resultSetNode
 
-	// Distinct represents if the select has distinct option.
+	// SelectStmtOpts wraps around select hints and switches.
+	*SelectStmtOpts
+	// Distinct represents whether the select has distinct option.
 	Distinct bool
 	// From is the from clause of the query.
 	From *TableRefsClause
@@ -458,8 +470,10 @@ type SelectStmt struct {
 	OrderBy *OrderByClause
 	// Limit is the limit clause.
 	Limit *Limit
-	// Lock is the lock type
+	// LockTp is the lock type
 	LockTp SelectLockType
+	// TableHints represents the level Optimizer Hint
+	TableHints []*TableOptimizerHint
 }
 
 // Accept implements Node Accept interface.
@@ -470,6 +484,18 @@ func (n *SelectStmt) Accept(v Visitor) (Node, bool) {
 	}
 
 	n = newNode.(*SelectStmt)
+	if n.TableHints != nil && len(n.TableHints) != 0 {
+		newHints := make([]*TableOptimizerHint, len(n.TableHints))
+		for i, hint := range n.TableHints {
+			node, ok := hint.Accept(v)
+			if !ok {
+				return n, false
+			}
+			newHints[i] = node.(*TableOptimizerHint)
+		}
+		n.TableHints = newHints
+	}
+
 	if n.From != nil {
 		node, ok := n.From.Accept(v)
 		if !ok {
@@ -625,14 +651,55 @@ func (n *Assignment) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
-// Priority const values.
-// See https://dev.mysql.com/doc/refman/5.7/en/insert.html
-const (
-	NoPriority = iota
-	LowPriority
-	HighPriority
-	DelayedPriority
-)
+// LoadDataStmt is a statement to load data from a specified file, then insert this rows into an existing table.
+// See https://dev.mysql.com/doc/refman/5.7/en/load-data.html
+type LoadDataStmt struct {
+	dmlNode
+
+	IsLocal    bool
+	Path       string
+	Table      *TableName
+	Columns    []*ColumnName
+	FieldsInfo *FieldsClause
+	LinesInfo  *LinesClause
+}
+
+// Accept implements Node Accept interface.
+func (n *LoadDataStmt) Accept(v Visitor) (Node, bool) {
+	newNode, skipChildren := v.Enter(n)
+	if skipChildren {
+		return v.Leave(newNode)
+	}
+	n = newNode.(*LoadDataStmt)
+	if n.Table != nil {
+		node, ok := n.Table.Accept(v)
+		if !ok {
+			return n, false
+		}
+		n.Table = node.(*TableName)
+	}
+	for i, val := range n.Columns {
+		node, ok := val.Accept(v)
+		if !ok {
+			return n, false
+		}
+		n.Columns[i] = node.(*ColumnName)
+	}
+	return v.Leave(n)
+}
+
+// FieldsClause represents fields references clause in load data statement.
+type FieldsClause struct {
+	Terminated string
+	Enclosed   byte
+	Escaped    byte
+}
+
+// LinesClause represents lines references clause in load data statement.
+type LinesClause struct {
+	Starting   string
+	Terminated string
+}
 
 // InsertStmt is a statement to insert new rows into an existing table.
 // See https://dev.mysql.com/doc/refman/5.7/en/insert.html
@@ -640,11 +707,12 @@ type InsertStmt struct {
 	dmlNode
 
 	IsReplace   bool
+	IgnoreErr   bool
 	Table       *TableRefsClause
 	Columns     []*ColumnName
 	Lists       [][]ExprNode
 	Setlist     []*Assignment
-	Priority    int
+	Priority    mysql.PriorityEnum
 	OnDuplicate []*Assignment
 	Select      ResultSetNode
 }
@@ -709,15 +777,15 @@ func (n *InsertStmt) Accept(v Visitor) (Node, bool) {
 type DeleteStmt struct {
 	dmlNode
 
-	// Used in both single table and multiple table delete statement.
+	// TableRefs is used in both single table and multiple table delete statement.
 	TableRefs *TableRefsClause
-	// Only used in multiple table delete statement.
+	// Tables is only used in multiple table delete statement.
 	Tables       *DeleteTableList
 	Where        ExprNode
 	Order        *OrderByClause
 	Limit        *Limit
 	LowPriority  bool
-	Ignore       bool
+	IgnoreErr    bool
 	Quick        bool
 	IsMultiTable bool
 	BeforeFrom   bool
@@ -778,7 +846,7 @@ type UpdateStmt struct {
 	Order         *OrderByClause
 	Limit         *Limit
 	LowPriority   bool
-	Ignore        bool
+	IgnoreErr     bool
 	MultipleTable bool
 }
 
@@ -829,8 +897,8 @@ func (n *UpdateStmt) Accept(v Visitor) (Node, bool) {
 type Limit struct {
 	node
 
-	Offset uint64
-	Count  uint64
+	Count  ExprNode
+	Offset ExprNode
 }
 
 // Accept implements Node Accept interface.
@@ -839,6 +907,21 @@ func (n *Limit) Accept(v Visitor) (Node, bool) {
 	if skipChildren {
 		return v.Leave(newNode)
 	}
+	if n.Count != nil {
+		node, ok := n.Count.Accept(v)
+		if !ok {
+			return n, false
+		}
+		n.Count = node.(ExprNode)
+	}
+	if n.Offset != nil {
+		node, ok := n.Offset.Accept(v)
+		if !ok {
+			return n, false
+		}
+		n.Offset = node.(ExprNode)
+	}
+
 	n = newNode.(*Limit)
 	return v.Leave(n)
 }
@@ -864,6 +947,15 @@ const (
 	ShowTriggers
 	ShowProcedureStatus
 	ShowIndex
+	ShowProcessList
+	ShowCreateDatabase
+	ShowEvents
+	ShowStatsMeta
+	ShowStatsHistograms
+	ShowStatsBuckets
+	ShowStatsHealthy
+	ShowPlugins
+	ShowProfiles
 )
 
 // ShowStmt is a statement to provide information about databases, tables, columns and so on.
@@ -878,9 +970,9 @@ type ShowStmt struct {
 	Column *ColumnName // Used for `desc table column`.
 	Flag   int         // Some flag parsed from sql, such as FULL.
 	Full   bool
-	User   string // Used for show grants.
+	User   *auth.UserIdentity // Used for show grants.
 
-	// Used by show variables
+	// GlobalScope is used by show variables
 	GlobalScope bool
 	Pattern     *PatternLikeExpr
 	Where       ExprNode
@@ -916,7 +1008,7 @@ func (n *ShowStmt) Accept(v Visitor) (Node, bool) {
 	}
 
 	switch n.Tp {
-	case ShowTriggers, ShowProcedureStatus:
+	case ShowTriggers, ShowProcedureStatus, ShowProcessList, ShowEvents:
 		// We don't have any data to return for those types,
 		// but visiting Where may cause resolving error, so return here to avoid error.
 		return v.Leave(n)
