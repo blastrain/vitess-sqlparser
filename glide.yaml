@@ -1,8 +1,13 @@
 package: github.com/knocknote/vitess-sqlparser
 import:
+- package: github.com/cznic/mathutil
+  version: 7764e6a2216aaa02c36f75aad62538d39c2962c2
 - package: github.com/juju/errors
+  version: c7d06af17c68cd34c835053720b21f6549d9b0ee
 - package: github.com/ngaut/log
+  version: d2af3a61f64d093457fb23b25d20f4ce3cd551ce
 - package: golang.org/x/text
+  version: b7ef84aaf62aa3e70962625c80a571ae7c17cb40
   subpackages:
   - encoding
   - encoding/charmap
@@ -11,3 +16,6 @@ import:
   - encoding/simplifiedchinese
   - encoding/traditionalchinese
   - encoding/unicode
+testImport:
+- package: github.com/pingcap/check
+  version: 1c287c953996ab3a0bf535dba9d53d809d3dc0b6
