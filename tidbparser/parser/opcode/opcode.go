@@ -13,17 +13,20 @@
 
 package opcode
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 // Op is opcode type.
 type Op int
 
 // List operators.
 const (
-	AndAnd Op = iota + 1
+	LogicAnd Op = iota + 1
 	LeftShift
 	RightShift
-	OrOr
+	LogicOr
 	GE
 	LE
 	EQ
@@ -54,29 +57,29 @@ const (
 
 // Ops maps opcode to string.
 var Ops = map[Op]string{
-	AndAnd:     "&&",
-	LeftShift:  "<<",
-	RightShift: ">>",
-	OrOr:       "||",
-	GE:         ">=",
-	LE:         "<=",
-	EQ:         "=",
-	NE:         "!=",
-	LT:         "<",
-	GT:         ">",
-	Plus:       "+",
-	Minus:      "-",
-	And:        "&",
-	Or:         "|",
-	Mod:        "%",
-	Xor:        "^",
-	Div:        "/",
-	Mul:        "*",
-	Not:        "!",
-	BitNeg:     "~",
-	IntDiv:     "DIV",
-	LogicXor:   "XOR",
-	NullEQ:     "<=>",
+	LogicAnd:   "and",
+	LogicOr:    "or",
+	LogicXor:   "xor",
+	LeftShift:  "leftshift",
+	RightShift: "rightshift",
+	GE:         "ge",
+	LE:         "le",
+	EQ:         "eq",
+	NE:         "ne",
+	LT:         "lt",
+	GT:         "gt",
+	Plus:       "plus",
+	Minus:      "minus",
+	And:        "bitand",
+	Or:         "bitor",
+	Mod:        "mod",
+	Xor:        "bitxor",
+	Div:        "div",
+	Mul:        "mul",
+	Not:        "not",
+	BitNeg:     "bitneg",
+	IntDiv:     "intdiv",
+	NullEQ:     "nulleq",
 	In:         "in",
 	Like:       "like",
 	Case:       "case",
@@ -94,4 +97,42 @@ func (o Op) String() string {
 	}
 
 	return str
+}
+
+var opsLiteral = map[Op]string{
+	LogicAnd:   "&&",
+	LogicOr:    "||",
+	LogicXor:   "^",
+	LeftShift:  "<<",
+	RightShift: ">>",
+	GE:         ">=",
+	LE:         "<=",
+	EQ:         "==",
+	NE:         "!=",
+	LT:         "<",
+	GT:         ">",
+	Plus:       "+",
+	Minus:      "-",
+	And:        "&",
+	Or:         "|",
+	Mod:        "%",
+	Xor:        "^",
+	Div:        "/",
+	Mul:        "*",
+	Not:        "!",
+	BitNeg:     "~",
+	IntDiv:     "//",
+	NullEQ:     "<=>",
+	In:         "IN",
+	Like:       "LIKE",
+	Case:       "CASE",
+	Regexp:     "REGEXP",
+	IsNull:     "IS NULL",
+	IsTruth:    "IS TRUE",
+	IsFalsity:  "IS FALSE",
+}
+
+// Format the ExprNode into a Writer.
+func (o Op) Format(w io.Writer) {
+	fmt.Fprintf(w, opsLiteral[o])
 }

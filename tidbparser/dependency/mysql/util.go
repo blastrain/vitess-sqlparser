@@ -13,101 +13,81 @@
 
 package mysql
 
-import (
-	"strings"
-	"unicode"
-)
+type lengthAndDecimal struct {
+	length  int
+	decimal int
+}
 
-// GetDefaultFieldLength is used for Interger Types, Flen is the display length.
+// defaultLengthAndDecimal provides default Flen and Decimal for fields
+// from CREATE TABLE when they are unspecified.
+var defaultLengthAndDecimal = map[byte]lengthAndDecimal{
+	TypeBit:        {1, 0},
+	TypeTiny:       {4, 0},
+	TypeShort:      {6, 0},
+	TypeInt24:      {9, 0},
+	TypeLong:       {11, 0},
+	TypeLonglong:   {20, 0},
+	TypeDouble:     {22, -1},
+	TypeFloat:      {12, -1},
+	TypeNewDecimal: {11, 0},
+	TypeDuration:   {10, 0},
+	TypeDate:       {10, 0},
+	TypeTimestamp:  {19, 0},
+	TypeDatetime:   {19, 0},
+	TypeYear:       {4, 0},
+	TypeString:     {1, 0},
+	TypeVarchar:    {5, 0},
+	TypeVarString:  {5, 0},
+	TypeTinyBlob:   {255, 0},
+	TypeBlob:       {65535, 0},
+	TypeMediumBlob: {16777215, 0},
+	TypeLongBlob:   {4294967295, 0},
+	TypeJSON:       {4294967295, 0},
+	TypeNull:       {0, 0},
+	TypeSet:        {-1, 0},
+	TypeEnum:       {-1, 0},
+}
+
+// IsIntegerType indicate whether tp is an integer type.
+func IsIntegerType(tp byte) bool {
+	switch tp {
+	case TypeTiny, TypeShort, TypeInt24, TypeLong, TypeLonglong:
+		return true
+	}
+	return false
+}
+
+// GetDefaultFieldLengthAndDecimal returns the default display length (flen) and decimal length for column.
 // Call this when no Flen assigned in ddl.
 // or column value is calculated from an expression.
 // For example: "select count(*) from t;", the column type is int64 and Flen in ResultField will be 21.
 // See https://dev.mysql.com/doc/refman/5.7/en/storage-requirements.html
-// See https://dev.mysql.com/doc/refman/5.7/en/storage-requirements.html
-func GetDefaultFieldLength(tp byte) int {
-	switch tp {
-	case TypeTiny:
-		return 4
-	case TypeShort:
-		return 6
-	case TypeInt24:
-		return 9
-	case TypeLong:
-		return 11
-	case TypeLonglong:
-		return 21
-	case TypeDecimal, TypeNewDecimal:
-		// See https://dev.mysql.com/doc/refman/5.7/en/fixed-point-types.html
-		// See https://dev.mysql.com/doc/refman/5.7/en/fixed-point-types.html
-		return 10
-	case TypeBit, TypeBlob:
-		return -1
-	default:
-		//TODO: add more types
-		return -1
+func GetDefaultFieldLengthAndDecimal(tp byte) (flen int, decimal int) {
+	val, ok := defaultLengthAndDecimal[tp]
+	if ok {
+		return val.length, val.decimal
 	}
+	return -1, -1
 }
 
-// GetDefaultDecimal returns the default decimal length for column.
-func GetDefaultDecimal(tp byte) int {
-	switch tp {
-	case TypeDecimal, TypeNewDecimal:
-		// See https://dev.mysql.com/doc/refman/5.7/en/fixed-point-types.html
-		// See https://dev.mysql.com/doc/refman/5.7/en/fixed-point-types.html
-		return 0
-	default:
-		//TODO: add more types
-		return -1
-	}
+// defaultLengthAndDecimal provides default Flen and Decimal for fields
+// from CAST when they are unspecified.
+var defaultLengthAndDecimalForCast = map[byte]lengthAndDecimal{
+	TypeString:     {0, -1}, // Flen & Decimal differs.
+	TypeDate:       {10, 0},
+	TypeDatetime:   {19, 0},
+	TypeNewDecimal: {11, 0},
+	TypeDuration:   {10, 0},
+	TypeLonglong:   {22, 0},
+	TypeJSON:       {4194304, 0}, // Flen differs.
 }
 
-func isSpace(c byte) bool {
-	return c == ' ' || c == '\t'
-}
-
-func isDigit(c byte) bool {
-	return c >= '0' && c <= '9'
-}
-
-func myMax(a, b int) int {
-	if a > b {
-		return a
+// GetDefaultFieldLengthAndDecimalForCast returns the default display length (flen) and decimal length for casted column
+// when flen or decimal is not specified.
+func GetDefaultFieldLengthAndDecimalForCast(tp byte) (flen int, decimal int) {
+	val, ok := defaultLengthAndDecimalForCast[tp]
+	if ok {
+		return val.length, val.decimal
 	}
-	return b
-}
-
-func myMin(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-// strToInt converts a string to an integer in best effort.
-// TODO: handle overflow and add unittest.
-func strToInt(str string) (int64, error) {
-	str = strings.TrimSpace(str)
-	if len(str) == 0 {
-		return 0, nil
-	}
-	negative := false
-	i := 0
-	if str[i] == '-' {
-		negative = true
-		i++
-	} else if str[i] == '+' {
-		i++
-	}
-	r := int64(0)
-	for ; i < len(str); i++ {
-		if !unicode.IsDigit(rune(str[i])) {
-			break
-		}
-		r = r*10 + int64(str[i]-'0')
-	}
-	if negative {
-		r = -r
-	}
-	// TODO: if i < len(str), we should return an error.
-	return r, nil
+	return -1, -1
 }

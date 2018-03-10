@@ -32,3 +32,23 @@ func TestCreateTableParsing(t *testing.T) {
 		`)
 	checkErr(t, err)
 }
+
+func TestCreateTableWithPartition(t *testing.T) {
+	_, err := Parse(`
+CREATE TABLE histories (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  user_id bigint(20) unsigned NOT NULL,
+  note text NOT NULL,
+  created_at datetime NOT NULL,
+  updated_at datetime NOT NULL,
+  PRIMARY KEY (id,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+/*!50500 PARTITION BY RANGE  COLUMNS(created_at)
+(PARTITION p201812 VALUES LESS THAN ('2019-01-01') ENGINE = InnoDB,
+ PARTITION p201901 VALUES LESS THAN ('2019-02-01') ENGINE = InnoDB,
+ PARTITION p201902 VALUES LESS THAN ('2019-03-01') ENGINE = InnoDB,
+ PARTITION p201903 VALUES LESS THAN ('2019-04-01') ENGINE = InnoDB) */;
+`)
+
+	checkErr(t, err)
+}

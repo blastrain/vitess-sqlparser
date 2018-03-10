@@ -13,7 +13,7 @@
 
 package ast
 
-import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/types"
+import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 
 // node is the struct implements node interface except for Accept method.
 // Node implementations should embed it in.
@@ -58,7 +58,7 @@ type dmlNode struct {
 // dmlStatement implements DMLNode interface.
 func (dn *dmlNode) dmlStatement() {}
 
-// expressionNode is the struct implements Expression interface.
+// exprNode is the struct implements Expression interface.
 // Expression implementations should embed it in.
 type exprNode struct {
 	node
@@ -67,32 +67,32 @@ type exprNode struct {
 	flag uint64
 }
 
-// SetDatum implements Expression interface.
+// SetDatum implements ExprNode interface.
 func (en *exprNode) SetDatum(datum types.Datum) {
 	en.Datum = datum
 }
 
-// GetDatum implements Expression interface.
+// GetDatum implements ExprNode interface.
 func (en *exprNode) GetDatum() *types.Datum {
 	return &en.Datum
 }
 
-// SetType implements Expression interface.
+// SetType implements ExprNode interface.
 func (en *exprNode) SetType(tp *types.FieldType) {
 	en.Type = *tp
 }
 
-// GetType implements Expression interface.
+// GetType implements ExprNode interface.
 func (en *exprNode) GetType() *types.FieldType {
 	return &en.Type
 }
 
-// SetFlag implements Expression interface.
+// SetFlag implements ExprNode interface.
 func (en *exprNode) SetFlag(flag uint64) {
 	en.flag = flag
 }
 
-// GetFlag implements Expression interface.
+// GetFlag implements ExprNode interface.
 func (en *exprNode) GetFlag() uint64 {
 	return en.flag
 }
@@ -101,19 +101,9 @@ type funcNode struct {
 	exprNode
 }
 
-// FunctionExpression implements FounctionNode interface.
+// functionExpression implements FunctionNode interface.
 func (fn *funcNode) functionExpression() {}
 
 type resultSetNode struct {
 	resultFields []*ResultField
-}
-
-// GetResultFields implements ResultSetNode interface.
-func (rs *resultSetNode) GetResultFields() []*ResultField {
-	return rs.resultFields
-}
-
-// GetResultFields implements ResultSetNode interface.
-func (rs *resultSetNode) SetResultFields(rfs []*ResultField) {
-	rs.resultFields = rfs
 }
