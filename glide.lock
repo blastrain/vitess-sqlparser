@@ -1,8 +1,6 @@
-hash: b667f7d9ec4269acad2b599685514e871f19e8e4ba4db11f40b6bab3433a328c
-updated: 2018-03-10T19:33:35.922072602+09:00
+hash: 0076e55786114dc0d52548a5c65ffb1f684cce27adb447dfba3cbd60f8e5f9b6
+updated: 2018-03-12T11:43:00.904935308+09:00
 imports:
-- name: github.com/cznic/mathutil
-  version: 7764e6a2216aaa02c36f75aad62538d39c2962c2
 - name: github.com/juju/errors
   version: c7d06af17c68cd34c835053720b21f6549d9b0ee
 - name: github.com/ngaut/log

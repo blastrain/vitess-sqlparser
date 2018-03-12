@@ -1,7 +1,5 @@
 package: github.com/knocknote/vitess-sqlparser
 import:
-- package: github.com/cznic/mathutil
-  version: 7764e6a2216aaa02c36f75aad62538d39c2962c2
 - package: github.com/juju/errors
   version: c7d06af17c68cd34c835053720b21f6549d9b0ee
 - package: github.com/ngaut/log
