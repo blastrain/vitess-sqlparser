@@ -25,6 +25,8 @@ Therefore we use vitess sql parser directly and also use TiDB parser for DDL par
 
 # Installation
 
+## [NOTE] Required Go version more than 1.9
+
 ```
 go get -u github.com/knocknote/vitess-sqlparser
 ```
