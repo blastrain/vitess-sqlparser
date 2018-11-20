@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/knocknote/vitess-sqlparser/sqltypes"
@@ -511,10 +512,118 @@ type DDL struct {
 	IfExists bool
 }
 
+type TableOption struct {
+	Type      TableOptionType
+	StrValue  string
+	UintValue uint64
+}
+
+type TableOptionType int
+
+// TableOption types.
+const (
+	TableOptionNone TableOptionType = iota
+	TableOptionEngine
+	TableOptionCharset
+	TableOptionCollate
+	TableOptionAutoIncrement
+	TableOptionComment
+	TableOptionAvgRowLength
+	TableOptionCheckSum
+	TableOptionCompression
+	TableOptionConnection
+	TableOptionPassword
+	TableOptionKeyBlockSize
+	TableOptionMaxRows
+	TableOptionMinRows
+	TableOptionDelayKeyWrite
+	TableOptionRowFormat
+	TableOptionStatsPersistent
+	TableOptionShardRowID
+	TableOptionPackKeys
+)
+
+func (t TableOptionType) String() string {
+	switch t {
+	case TableOptionEngine:
+		return "ENGINE"
+	case TableOptionCharset:
+		return "DEFAULT CHARSET"
+	case TableOptionCollate:
+		return "DEFAULT COLLATE"
+	case TableOptionAutoIncrement:
+		return "AUTO_INCREMENT"
+	case TableOptionComment:
+		return "COMMENT"
+	case TableOptionAvgRowLength:
+		return "AVG_ROW_LENGTH"
+	case TableOptionCheckSum:
+		return "CHECKSUM"
+	case TableOptionConnection:
+		return "CONNECTION"
+	case TableOptionPassword:
+		return "PASSWORD"
+	case TableOptionKeyBlockSize:
+		return "KEY_BLOCK_SIZE"
+	case TableOptionMaxRows:
+		return "MAX_ROWS"
+	case TableOptionMinRows:
+		return "MIN_ROWS"
+	case TableOptionDelayKeyWrite:
+		return "DELAY_KEY_WRITE"
+	case TableOptionRowFormat:
+		return "ROW_FORMAT"
+	case TableOptionStatsPersistent:
+		return "STATS_PERSISTENT"
+	case TableOptionPackKeys:
+		return "PACK_KEYS"
+	case TableOptionCompression:
+	case TableOptionShardRowID:
+	default:
+	}
+	return ""
+}
+
+func (o *TableOption) String() string {
+	if o.StrValue != "" {
+		return fmt.Sprintf("%s=%s", o.Type, o.StrValue)
+	}
+	return fmt.Sprintf("%s=%d", o.Type, o.UintValue)
+}
+
 type CreateTable struct {
 	*DDL
 	Columns     []*ColumnDef
 	Constraints []*Constraint
+	Options     []*TableOption
+}
+
+func (t *CreateTable) Format(buf *TrackedBuffer) {
+	columns := []string{}
+	for _, column := range t.Columns {
+		columns = append(columns, column.String())
+	}
+	column := strings.Join(columns, ",\n\t")
+	if len(t.Constraints) > 0 {
+		constraints := []string{}
+		for _, constraint := range t.Constraints {
+			constraints = append(constraints, constraint.String())
+		}
+		column += ",\n\t" + strings.Join(constraints, ",\n\t")
+	}
+	options := []string{}
+	for _, option := range t.Options {
+		options = append(options, option.String())
+	}
+	option := strings.Join(options, " ")
+
+	if column != "" {
+		text := fmt.Sprintf("CREATE TABLE `%v` (\n\t%s\n) %s", t.NewName.Name, column, option)
+		buf.Myprintf("%s", text)
+	} else {
+		text := fmt.Sprintf("CREATE TABLE `%v` %s", t.NewName.Name, option)
+		buf.Myprintf("%s", text)
+	}
 }
 
 // DDL strings.
@@ -528,8 +637,6 @@ const (
 // Format formats the node.
 func (node *DDL) Format(buf *TrackedBuffer) {
 	switch node.Action {
-	case CreateStr:
-		buf.Myprintf("%s table %v", node.Action, node.NewName)
 	case DropStr:
 		exists := ""
 		if node.IfExists {
@@ -772,6 +879,28 @@ const (
 	ConstraintFulltext
 )
 
+func (t ConstraintType) String() string {
+	switch t {
+	case ConstraintPrimaryKey:
+		return "PRIMARY KEY"
+	case ConstraintKey:
+		return "KEY"
+	case ConstraintIndex:
+		return "INDEX"
+	case ConstraintUniq:
+		return "UNIQUE"
+	case ConstraintUniqKey:
+		return "UNIQUE KEY"
+	case ConstraintUniqIndex:
+		return "UNIQUE INDEX"
+	case ConstraintForeignKey:
+		return "FOREIGN KEY"
+	case ConstraintFulltext:
+		return "FULLTEXT"
+	}
+	return ""
+}
+
 // Constraint is constraint for table definition.
 type Constraint struct {
 	Type ConstraintType
@@ -780,11 +909,94 @@ type Constraint struct {
 	Keys []ColIdent
 }
 
+func (node Constraint) String() string {
+	keys := []string{}
+	for _, key := range node.Keys {
+		keys = append(keys, fmt.Sprintf("`%v`", key))
+	}
+	name := ""
+	if node.Name != "" {
+		name = fmt.Sprintf("`%s`", node.Name)
+	}
+	return fmt.Sprintf("%s %s (%s)", node.Type.String(), name, strings.Join(keys, ", "))
+}
+
+// ColumnOptionType is the type for ColumnOption.
+type ColumnOptionType int
+
+const (
+	ColumnOptionNoOption ColumnOptionType = iota
+	ColumnOptionPrimaryKey
+	ColumnOptionNotNull
+	ColumnOptionAutoIncrement
+	ColumnOptionDefaultValue
+	ColumnOptionUniqKey
+	ColumnOptionNull
+	ColumnOptionOnUpdate // For Timestamp and Datetime only.
+	ColumnOptionFulltext
+	ColumnOptionComment
+	ColumnOptionGenerated
+	ColumnOptionReference
+)
+
+func (o ColumnOptionType) String() string {
+	switch o {
+	case ColumnOptionPrimaryKey:
+		return "PRIMARY KEY"
+	case ColumnOptionNotNull:
+		return "NOT NULL"
+	case ColumnOptionAutoIncrement:
+		return "AUTO_INCREMENT"
+	case ColumnOptionDefaultValue:
+		return "DEFAULT"
+	case ColumnOptionUniqKey:
+		return "UNIQUE KEY"
+	case ColumnOptionNull:
+		return "NULL"
+	case ColumnOptionOnUpdate:
+		return "ON UPDATE"
+	case ColumnOptionFulltext:
+		return "FULLTEXT"
+	case ColumnOptionComment:
+		return "COMMENT"
+	case ColumnOptionGenerated:
+	case ColumnOptionReference:
+	default:
+	}
+	return ""
+}
+
+// ColumnOption is used for parsing column constraint info from SQL.
+type ColumnOption struct {
+	Type  ColumnOptionType
+	Value string
+}
+
+func (o *ColumnOption) String() string {
+	if o.Value != "" {
+		return fmt.Sprintf("%s %s", o.Type, o.Value)
+	}
+	return fmt.Sprint(o.Type)
+}
+
 type ColumnDef struct {
 	Name string
 	Type string
 	// Elems is the element list for enum and set type.
-	Elems []string
+	Elems   []string
+	Options []*ColumnOption
+}
+
+func (node ColumnDef) String() string {
+	option := ""
+	if len(node.Options) > 0 {
+		options := []string{}
+		for _, option := range node.Options {
+			options = append(options, option.String())
+		}
+		option = " " + strings.Join(options, " ")
+	}
+	return fmt.Sprintf("`%s` %s%s", node.Name, node.Type, option)
 }
 
 // Columns represents an insert column list.
