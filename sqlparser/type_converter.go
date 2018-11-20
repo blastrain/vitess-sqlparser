@@ -1,15 +1,26 @@
 package sqlparser
 
 import (
+	"bytes"
+
 	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
 )
 
 func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
 	columns := []*ColumnDef{}
 	for _, col := range stmt.Cols {
-		options := []ColumnOptionType{}
+		options := []*ColumnOption{}
 		for _, option := range col.Options {
-			options = append(options, ColumnOptionType(option.Tp))
+			expr := ""
+			if option.Expr != nil {
+				var buf bytes.Buffer
+				option.Expr.Format(&buf)
+				expr = buf.String()
+			}
+			options = append(options, &ColumnOption{
+				Type:  ColumnOptionType(option.Tp),
+				Value: expr,
+			})
 		}
 		columns = append(columns, &ColumnDef{
 			Name:    col.Name.Name.String(),

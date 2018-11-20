@@ -968,7 +968,15 @@ func (o ColumnOptionType) String() string {
 
 // ColumnOption is used for parsing column constraint info from SQL.
 type ColumnOption struct {
-	Type ColumnOptionType
+	Type  ColumnOptionType
+	Value string
+}
+
+func (o *ColumnOption) String() string {
+	if o.Value != "" {
+		return fmt.Sprintf("%s %s", o.Type, o.Value)
+	}
+	return fmt.Sprint(o.Type)
 }
 
 type ColumnDef struct {
@@ -976,14 +984,10 @@ type ColumnDef struct {
 	Type string
 	// Elems is the element list for enum and set type.
 	Elems   []string
-	Options []ColumnOptionType
+	Options []*ColumnOption
 }
 
 func (node ColumnDef) String() string {
-	if len(node.Elems) > 0 {
-		elems := strings.Join(node.Elems, ",")
-		return fmt.Sprintf("`%s` %s (%s)", node.Name, node.Type, elems)
-	}
 	option := ""
 	if len(node.Options) > 0 {
 		options := []string{}
