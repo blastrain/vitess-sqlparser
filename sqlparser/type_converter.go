@@ -7,10 +7,15 @@ import (
 func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
 	columns := []*ColumnDef{}
 	for _, col := range stmt.Cols {
+		options := []ColumnOptionType{}
+		for _, option := range col.Options {
+			options = append(options, ColumnOptionType(option.Tp))
+		}
 		columns = append(columns, &ColumnDef{
-			Name:  col.Name.Name.String(),
-			Type:  col.Tp.String(),
-			Elems: col.Tp.Elems,
+			Name:    col.Name.Name.String(),
+			Type:    col.Tp.String(),
+			Elems:   col.Tp.Elems,
+			Options: options,
 		})
 	}
 	constraints := []*Constraint{}
@@ -25,10 +30,19 @@ func convertFromCreateTableStmt(stmt *ast.CreateTableStmt, ddl *DDL) Statement {
 			Keys: keys,
 		})
 	}
+	options := []*TableOption{}
+	for _, option := range stmt.Options {
+		options = append(options, &TableOption{
+			Type:      TableOptionType(option.Tp),
+			StrValue:  option.StrValue,
+			UintValue: option.UintValue,
+		})
+	}
 	return &CreateTable{
 		DDL:         ddl,
 		Columns:     columns,
 		Constraints: constraints,
+		Options:     options,
 	}
 }
 
