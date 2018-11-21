@@ -543,6 +543,34 @@ const (
 	TableOptionPackKeys
 )
 
+// RowFormatType is the type for RowFormat
+type RowFormatType uint64
+
+// RowFormat types
+const (
+	RowFormatDefault RowFormatType = iota + 1
+	RowFormatDynamic
+	RowFormatFixed
+	RowFormatCompressed
+	RowFormatRedundant
+	RowFormatCompact
+)
+
+func (r RowFormatType) String() string {
+	switch r {
+	case RowFormatDynamic:
+		return "DYNAMIC"
+	case RowFormatCompressed:
+		return "COMPRESSED"
+	case RowFormatRedundant:
+		return "REDUNDANT"
+	case RowFormatCompact:
+		return "COMPACT"
+	default:
+	}
+	return ""
+}
+
 func (t TableOptionType) String() string {
 	switch t {
 	case TableOptionEngine:
@@ -585,6 +613,9 @@ func (t TableOptionType) String() string {
 }
 
 func (o *TableOption) String() string {
+	if o.Type == TableOptionRowFormat {
+		return fmt.Sprintf("%s=%s", o.Type, RowFormatType(o.UintValue))
+	}
 	if o.StrValue != "" {
 		return fmt.Sprintf("%s=%s", o.Type, o.StrValue)
 	}
