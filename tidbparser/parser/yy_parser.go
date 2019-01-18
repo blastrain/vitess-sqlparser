@@ -20,11 +20,11 @@ import (
 	"unicode"
 
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/ast"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/mysql"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/terror"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 const (

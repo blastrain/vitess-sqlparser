@@ -13,7 +13,7 @@
 
 package types
 
-import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
+import "go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types/json"
 
 // Row is an interface to read columns values.
 type Row interface {

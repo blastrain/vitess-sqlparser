@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/knocknote/vitess-sqlparser/bytes2"
-	"github.com/knocknote/vitess-sqlparser/sqltypes"
+	"go.knocknote.io/vitess-sqlparser/bytes2"
+	"go.knocknote.io/vitess-sqlparser/sqltypes"
 )
 
 const eofChar = 0x100

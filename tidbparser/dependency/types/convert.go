@@ -23,11 +23,11 @@ import (
 	"strings"
 
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/mysql"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/terror"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types/json"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 func truncateStr(str string, flen int) string {

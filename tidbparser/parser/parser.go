@@ -32,13 +32,13 @@ import __yyfmt__ "fmt"
 import (
 	"strings"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/parser/opcode"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/auth"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/ast"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/model"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/mysql"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/parser/opcode"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/auth"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/charset"
 )
 
 type yySymType struct {

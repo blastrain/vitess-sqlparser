@@ -14,9 +14,9 @@
 package ast
 
 import (
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/auth"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/model"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/mysql"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/auth"
 )
 
 var (

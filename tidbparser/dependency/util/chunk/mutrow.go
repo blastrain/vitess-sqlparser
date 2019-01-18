@@ -18,10 +18,10 @@ import (
 	"math"
 	"unsafe"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/mysql"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types/json"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 // MutRow represents a mutable Row.

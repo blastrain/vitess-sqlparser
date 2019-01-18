@@ -16,8 +16,8 @@ package parser
 import (
 	"strings"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/charset"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 func isLetter(ch rune) bool {

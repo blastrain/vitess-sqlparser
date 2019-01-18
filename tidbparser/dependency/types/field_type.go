@@ -19,10 +19,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/charset"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/format"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/mysql"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types/json"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/charset"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/format"
 )
 
 // UnspecifiedLength is unspecified length.

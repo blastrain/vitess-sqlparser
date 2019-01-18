@@ -18,9 +18,9 @@ package ast
 import (
 	"io"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/chunk"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/model"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/chunk"
 	"context"
 )
 

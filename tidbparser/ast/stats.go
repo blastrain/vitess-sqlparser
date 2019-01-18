@@ -13,7 +13,7 @@
 
 package ast
 
-import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
+import "go.knocknote.io/vitess-sqlparser/tidbparser/dependency/model"
 
 var (
 	_ StmtNode = &AnalyzeTableStmt{}

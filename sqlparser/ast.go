@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/knocknote/vitess-sqlparser/sqltypes"
-	tidbparser "github.com/knocknote/vitess-sqlparser/tidbparser/parser"
+	"go.knocknote.io/vitess-sqlparser/sqltypes"
+	tidbparser "go.knocknote.io/vitess-sqlparser/tidbparser/parser"
 )
 
 // Instructions for creating new types: If a type

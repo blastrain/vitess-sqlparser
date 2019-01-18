@@ -23,7 +23,7 @@ import (
 	"unsafe"
 
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
+	"go.knocknote.io/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 // Type returns type of BinaryJSON as string.

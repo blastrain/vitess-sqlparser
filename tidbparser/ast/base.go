@@ -13,7 +13,7 @@
 
 package ast
 
-import "github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+import "go.knocknote.io/vitess-sqlparser/tidbparser/dependency/types"
 
 // node is the struct implements node interface except for Accept method.
 // Node implementations should embed it in.
