@@ -1,12 +1,19 @@
 package sqlparser
 
 import (
+	"reflect"
 	"testing"
 )
 
 func checkErr(t *testing.T, err error) {
 	if err != nil {
 		t.Fatalf("%+v", err)
+	}
+}
+
+func checkEqual(t *testing.T, src interface{}, dst interface{}) {
+	if !reflect.DeepEqual(src, dst) {
+		t.Fatalf("not equal %v and %v", src, dst)
 	}
 }
 
@@ -49,6 +56,16 @@ CREATE TABLE histories (
  PARTITION p201902 VALUES LESS THAN ('2019-03-01') ENGINE = InnoDB,
  PARTITION p201903 VALUES LESS THAN ('2019-04-01') ENGINE = InnoDB) */;
 `)
-
 	checkErr(t, err)
+}
+
+func TestShowCreateTableParsing(t *testing.T) {
+	ast, err := Parse(`SHOW CREATE TABLE users`)
+	checkErr(t, err)
+	switch stmt := ast.(type) {
+	case *Show:
+		checkEqual(t, "users", stmt.TableName)
+	default:
+		t.Fatalf("%+v", "type mismatch")
+	}
 }
