@@ -55,6 +55,12 @@ func Parse(sql string) (Statement, error) {
 			return nil, err
 		}
 		return convertTiDBStmtToVitessDDL(stmts, stmt), nil
+	case *Show:
+		stmts, err := tidbparser.New().Parse(sql, "", "")
+		if err != nil {
+			return nil, err
+		}
+		return convertTiDBStmtToVitessShow(stmts, stmt), nil
 	case *OtherAdmin:
 		stmts, err := tidbparser.New().Parse(sql, "", "")
 		if err != nil {
@@ -695,7 +701,8 @@ func (node *DDL) WalkSubtree(visit Visit) error {
 
 // Show represents a show statement.
 type Show struct {
-	Type string
+	Type      string
+	TableName string
 }
 
 // The frollowing constants represent SHOW statements.
