@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
 )
 
 // SchemaState is the state for schema elements.

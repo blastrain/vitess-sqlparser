@@ -22,12 +22,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/terror"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types/json"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/hack"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 func truncateStr(str string, flen int) string {

@@ -18,8 +18,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/memory"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/memory"
 )
 
 // StatementContext contains variables for a statement.

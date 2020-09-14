@@ -14,9 +14,9 @@
 package chunk
 
 import (
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/memory"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/memory"
 )
 
 // List holds a slice of chunks, use to append rows with max chunk size properly handled.

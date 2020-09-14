@@ -19,7 +19,7 @@ package sqlparser
 import (
 	"bytes"
 
-	"github.com/knocknote/vitess-sqlparser/sqltypes"
+	"github.com/blastrain/vitess-sqlparser/sqltypes"
 )
 
 // This file contains types that are 'Encodable'.

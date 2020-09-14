@@ -23,10 +23,10 @@ import (
 	gotime "time"
 	"unicode"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/terror"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
 )
 
 // Portable analogs of some common call errors.

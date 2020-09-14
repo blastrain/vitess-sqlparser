@@ -19,8 +19,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/terror"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
 )
 
 // UserIdentity represents username and hostname.
