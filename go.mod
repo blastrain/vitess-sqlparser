@@ -1,4 +1,4 @@
-module github.com/knocknote/vitess-sqlparser
+module github.com/blastrain/vitess-sqlparser
 
 go 1.12
 

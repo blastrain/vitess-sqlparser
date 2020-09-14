@@ -17,10 +17,10 @@ import (
 	"encoding/binary"
 	"unsafe"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types/json"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 var _ types.Row = Row{}

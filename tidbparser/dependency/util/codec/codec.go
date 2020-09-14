@@ -17,13 +17,13 @@ import (
 	"encoding/binary"
 	"time"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/terror"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types/json"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/chunk"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/sessionctx/stmtctx"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types/json"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/chunk"
 )
 
 // First byte in the encoded value which specifies the encoding type.

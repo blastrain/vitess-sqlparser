@@ -18,10 +18,10 @@ package ast
 import (
 	"io"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/chunk"
 	"context"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/chunk"
 )
 
 // Node is the basic element of the AST.

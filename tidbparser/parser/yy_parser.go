@@ -19,12 +19,12 @@ import (
 	"strconv"
 	"unicode"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/ast"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/terror"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/hack"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/ast"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/terror"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 const (

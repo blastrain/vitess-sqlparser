@@ -16,8 +16,8 @@ package charset
 import (
 	"strings"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
 )
 
 // Charset is a charset.

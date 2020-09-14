@@ -20,10 +20,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/model"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/mysql"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/parser/opcode"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/model"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/mysql"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
+	"github.com/blastrain/vitess-sqlparser/tidbparser/parser/opcode"
 )
 
 var (

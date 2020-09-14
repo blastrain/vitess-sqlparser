@@ -16,8 +16,8 @@ package codec
 import (
 	"fmt"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/types"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/types"
 )
 
 // EncodeDecimal encodes a decimal into a byte slice which can be sorted lexicographically later.

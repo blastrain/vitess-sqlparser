@@ -22,8 +22,8 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
+	"github.com/blastrain/vitess-sqlparser/tidbparser/dependency/util/hack"
 	"github.com/juju/errors"
-	"github.com/knocknote/vitess-sqlparser/tidbparser/dependency/util/hack"
 )
 
 // Type returns type of BinaryJSON as string.
