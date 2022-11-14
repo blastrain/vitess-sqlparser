@@ -2622,14 +2622,14 @@ func formatID(buf *TrackedBuffer, original, lowered string) {
 	return
 
 mustEscape:
-	buf.WriteByte('`')
+	buf.WriteByte('"')
 	for _, c := range original {
 		buf.WriteRune(c)
-		if c == '`' {
-			buf.WriteByte('`')
+		if c == '"' {
+			buf.WriteByte('"')
 		}
 	}
-	buf.WriteByte('`')
+	buf.WriteByte('"')
 }
 
 func compliantName(in string) string {

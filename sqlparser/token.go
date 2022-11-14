@@ -459,10 +459,14 @@ func (tkn *Tokenizer) Scan() (int, []byte) {
 				return NE, nil
 			}
 			return int(ch), nil
-		case '\'', '"':
+		// Single quotes (') are used around strings, for example to include a space in a string.
+		case '\'':
 			return tkn.scanString(ch, STRING)
-		case '`':
+		// Backticks (") are used around table and column identifiers.
+		case '"':
 			return tkn.scanLiteralIdentifier()
+		// Note that a token that starts with a backtick reaches to default now. Backticks (`) are used to escape reserved keywords in DDL statements.
+		// Since our parser isn't supposed to parse DDL statements, we can return an error when we get a token that starts with a backtick.
 		default:
 			return LEX_ERROR, []byte{byte(ch)}
 		}
@@ -514,17 +518,17 @@ func (tkn *Tokenizer) scanLiteralIdentifier() (int, []byte) {
 	backTickSeen := false
 	for {
 		if backTickSeen {
-			if tkn.lastChar != '`' {
+			if tkn.lastChar != '"' {
 				break
 			}
 			backTickSeen = false
-			buffer.WriteByte('`')
+			buffer.WriteByte('"')
 			tkn.next()
 			continue
 		}
 		// The previous char was not a backtick.
 		switch tkn.lastChar {
-		case '`':
+		case '"':
 			backTickSeen = true
 		case eofChar:
 			// Premature EOF.

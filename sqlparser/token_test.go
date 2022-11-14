@@ -16,7 +16,21 @@ limitations under the License.
 
 package sqlparser
 
-import "testing"
+import (
+	"testing"
+)
+
+func TestDoubleQuotes(t *testing.T) {
+	inputSQL := "select * from temp where \"global id\" = 'ab`cd'"
+	stmt, err := Parse(inputSQL)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	outputSQL := String(stmt)
+	if inputSQL != outputSQL {
+		t.Errorf("Input and output SQLs are not equal")
+	}
+}
 
 func TestLiteralID(t *testing.T) {
 	testcases := []struct {
@@ -24,31 +38,31 @@ func TestLiteralID(t *testing.T) {
 		id  int
 		out string
 	}{{
-		in:  "`aa`",
+		in:  "\"aa\"",
 		id:  ID,
 		out: "aa",
 	}, {
-		in:  "```a```",
+		in:  "\"\"\"a\"\"\"",
 		id:  ID,
-		out: "`a`",
+		out: "\"a\"",
 	}, {
-		in:  "`a``b`",
+		in:  "\"a\"\"b\"",
 		id:  ID,
-		out: "a`b",
+		out: "a\"b",
 	}, {
-		in:  "`a``b`c",
+		in:  "\"a\"\"b\"c",
 		id:  ID,
-		out: "a`b",
+		out: "a\"b",
 	}, {
-		in:  "`a``b",
+		in:  "\"a\"\"b",
 		id:  LEX_ERROR,
-		out: "a`b",
+		out: "a\"b",
 	}, {
-		in:  "`a``b``",
+		in:  "\"a\"\"b\"\"",
 		id:  LEX_ERROR,
-		out: "a`b`",
+		out: "a\"b\"",
 	}, {
-		in:  "``",
+		in:  "\"\"",
 		id:  LEX_ERROR,
 		out: "",
 	}}
