@@ -89,7 +89,10 @@ func convertTiDBStmtToVitessShow(stmts []ast.StmtNode, show *Show) Statement {
 	for _, stmt := range stmts {
 		switch showStmt := stmt.(type) {
 		case *ast.ShowStmt:
-			return &Show{TableName: showStmt.Table.Name.String()}
+			if showStmt.Table != nil {
+				return &Show{TableName: showStmt.Table.Name.String()}
+			}
+			return show
 		default:
 			return show
 		}
